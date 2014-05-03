@@ -97,7 +97,7 @@ namespace QuickHelp.Converters
                     if (newAttrs.Link != null)
                     {
                         html.AppendFormat("<a href=\"{0}\">",
-                                          ConvertLink(topic, newAttrs.Link));
+                                          ConvertUri(topic, newAttrs.Link));
                     }
                 }
                 html.Append(Escape("" + line.Text[i]));
@@ -113,9 +113,9 @@ namespace QuickHelp.Converters
             html.AppendLine();
         }
 
-        protected virtual string ConvertLink(HelpTopic topic, HelpUri link)
+        protected virtual string ConvertUri(HelpTopic topic, HelpUri uri)
         {
-            return "?" + Escape(link.ToString());
+            return "?" + Escape(uri.ToString());
         }
 
         private static void FormatAddedStyles(
