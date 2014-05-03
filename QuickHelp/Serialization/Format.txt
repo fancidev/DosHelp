@@ -1,0 +1,457 @@
+QuickHelp Binary Format
+=======================
+
+This document describes the binary format of a QuickHelp .HLP file.
+
+
+Overview
+--------
+
+The overall layout of a QuickHelp .HLP file is like the following:
+
+  +------------------------+
+  |       File Header      |
+  +------------------------+
+  |      Topic offsets     |
+  +------------------------+
+  |     Context strings    |
+  +------------------------+
+  |  Context => topic map  |
+  +------------------------+
+  |       Dictionary       |
+  +------------------------+
+  |      Huffman tree      |
+  +------------------------+
+  |      Topic[0] data     |
+  +------------------------+
+  |          ...           |
+  +------------------------+
+  |     Topic[N-1] data    |
+  +------------------------+
+
+Each part is described in detail below.
+
+Note: All numeric fields are stored in little-endian format unless specified
+      otherwise.
+
+
+File Header
+-----------
+
+The file header section is at the beginning of an HLP file. It contains
+the following fields. 
+
+  Position  Type    Field                 Meaning
+  ----------------------------------------------------------------------------
+  00 - 02   WORD    Signature             file format signature; must be 0x4C, 0x4E
+  02 - 04   WORD    Unknown 1
+  04 - 06   WORD    Attributes            bit 0 is case-sensitive;
+                                          bit 1 is LOCK;
+                                          other bits are unknown
+  06 - 07   BYTE    ControlCharacter      usually ':'; 0FFh also seen
+  07 - 08   BYTE    Unknown 3
+  08 - 0A   WORD    TopicCount            Number of topics in the archive
+  0A - 0C   WORD    ContextCount          Number of context strings in the archive
+  0C - 0D   BYTE    TextWidth             Fixed width of the help text in characters
+  0D - 0E   BYTE    Unknown 4
+  0E - 10   WORD    Unknown 5
+  10 - 1E   String  FileName              file name of the archive, NULL padded
+                                          This might as well be char[12] + WORD
+                                          This name (rather than the physical file
+                                          name) is used when solving external links.
+  1E - 22   DWORD   reserved1             always 0
+  22 - 26   DWORD   TopicOffsetsOffset    offset of topic offset array
+  26 - 2A   DWORD   ContextStringsOffset  offset of context string array
+  2A - 2E   DWORD   ContextTopicsOffset   offset of [context => topic] mappings 
+  2E - 32   DWORD   DictionaryOffset      offset of dictionary
+  32 - 36   DWORD   HuffmanTreeOffset     offset of huffman tree
+  36 - 3A   DWORD   TopicDataOffset       offset of pages
+  3A - 3E   DWORD   reserved2             always 0
+  3E - 42   DWORD   reserved3             always 0
+  42 - 46   DWORD   DatabaseSize          size of this help database in bytes
+
+
+Topic Offsets
+-------------
+
+The "topic offsets" section contains (TopicCount + 1) DWORD integers. Each
+integer specifies the offset of the corresponding topic, relative to the
+beginning of the help database.
+
+The size (in bytes) of topic k can be found by computing the difference
+between TopicOffset[k] and TopicOffset[k+1]. An extra integer is appended
+at the end of the TopicOffsets array to allow finding the size of the last
+topic.
+
+   (N = TopicCount)
+  +--------------------+
+  |   TopicOffset[0]   |   (DWORD) offset of the first topic
+  +--------------------+
+  |        ...         |   ...
+  +--------------------+
+  |  TopicOffset[N-1]  |   (DWORD) offset of the last topic
+  +--------------------+
+  |   TopicOffset[N]   |   (DWORD) indicates the end of the last topic;
+  +--------------------+           should be equal to DatabaseSize.
+
+        
+Context strings
+---------------
+
+The "context strings" section contains (ContextCount) context strings. Each
+string is NUL-terminated and stored sequentially in the section. The context
+strings are stored in no particular order.
+
+   (N = ContextCount)
+  +--------------------+
+  |  ContextString[0]  |   first context string (NULL-terminated)
+  +--------------------+
+  |        ...         |   ...
+  +--------------------+
+  | ContextString[N-1] |   last context string (NULL-terminated)
+  +--------------------+
+
+
+Context to topic mappings
+-------------------------
+
+The "context to topic mappings" section contains (ContextCount) WORD integers.
+Each integer specifies the index of the topic to which this context string
+resolves; each integer must be between 0 and (TopicCount - 1) inclusive.
+
+   (N = ContextCount)
+  +-------------------+
+  |  ContextTopic[0]  |   (WORD) topic index that owns first context string
+  +-------------------+
+  |        ...        |   ...
+  +-------------------+
+  | ContextTopic[N-1] |   (WORD) topic index that owns last context string
+  +-------------------+
+
+
+Dictionary
+----------
+
+The "dictionary" section contains a list of frequently used words in the help
+database. These words are used together with the huffman tree to compress the
+database. 
+
+   (N = implicit)
+  +-------------+
+  |   Word[0]   |   first word in dictionary (length-prefixed string)
+  +-------------+
+  |     ...     |   ...
+  +-------------+
+  |  Word[N-1]  |   last word in dictionary (length-prefixed string)
+  +-------------+
+
+There can be at most 1024 (10 bits) words in the dictionary; but there can be
+fewer. The number of words is not explicitly specified anywhere; it must be
+inferred by reading the section between [DictionaryOffset, HuffmanTreeOffset).
+
+Each word is prefixed by a byte that specifies the length of the word in
+bytes. The word is NOT NULL-terminated.
+
+
+Huffman tree
+------------
+
+The "huffman tree" section contains the huffman tree used to encode the topic
+data in the help database. Each node in a huffman tree is either a leaf node
+or an internal node; a leaf node encodes a symbol valued from 0 to 255; an
+internal node must have two children and encodes a bit: left child encodes 1
+and right child encodes 0. (Note: this is contrary to common convention).
+
+The huffman tree is compactly stored in an array of WORD integers; each tree
+node is represented by a WORD integer. The number of nodes is not explicitly
+specified anywhere; it must be inferred by reading the whole section between
+[HuffmanTreeOffset, TopicDataOffset).
+
+511 nodes are sufficient to encode all 256 symbols. If the array contains
+more than 511 WORDs (typically 512), the extra nodes (typically the last node)
+should be set to a value of zero. If the array contains less than 511 WORDs,
+only a subset of the 256 symbols is represented.
+
+The storage format of the huffman tree is as follows. Denote the nodes in the
+tree by Node[0] through Node[510]. Then:
+  - A leaf node, Node[i], has its highest bit set to 1, and the symbol it
+    represents is the lowest 8 bits of Node[i].
+  - An internal node, Node[i], has its highest is set to 0, and
+    o its left child is Node[i+1];
+    o its right child is Node[Node[i]/2]. (think of Node[i] as byte offset)
+  - The root node is Node[0]; it must be an internal node.
+
+Note that this format is not restricted to a huffman tree; it can be used to
+store any full binary tree.
+
+The above node numbering scheme can be generated by performing a pre-order
+traversal of the tree, starting from the root, and numbering each node
+sequentially as they are visited. Note, however, that other methods may also
+generate a conforming tree.
+
+
+Topic data
+----------
+
+Following the huffman tree are N blocks of topic data, each corresponding to
+a topic. Each topic is separately compressed. The compression method is
+described below.
+
+Topic data is compressed in three-stages:
+
+Stage 1. First, the topic text (in QuickHelp markup format) is converted to
+         a binary format that is easier for screen display.
+Stage 2. Next, the binary data is compressed by dictionary substitution and
+         run-length encoding, making it more compact.
+Stage 3. Finally, the compressed data is encoded with huffman encoding and
+         stored in the help database.
+
+The following chart illustrates this process:
+
+  +=====================+
+  |  Topic Text Markup  |
+  +=====================+
+             |
+             |  [1] convert to binary
+             v
+  +=====================+
+  |  Binary Topic Data  |
+  +=====================+
+             |
+             |  [2] dictionary substitution
+             |      and run-length encoding
+             v
+  +=====================+
+  | Escaped Topic Data  |
+  +=====================+
+             |
+             |  [3] huffman encoding
+             v
+  +=====================+
+  |   Data in Storage   |
+  +=====================+
+
+
+
+Stage 1: Convert QuickHelp Markup format to binary format
+---------------------------------------------------------
+
+The QuickHelp markup format is described in detail in MASM documentation,
+Chapter 18 - Creating Help Files with HELPMAKE.
+
+The QuickHelp binary format is the format that is actually used by the help
+system to display help content and interact with the user.
+
+In the QuickHelp binary format, each line is represented by two parts:
+ 1. Text
+ 2. Text attributes and hyperlinks
+
+"Text" is the characters actually displayed on the screen, stripped of any
+formatting information. Since QuickHelp is console oriented, there should be
+no more than 78 characters in each line; otherwise the help screen will have
+to scroll horizontally to display all content, which is inconvenient for the
+user.
+
+"Text attributes" associates each character with one or more of the following
+styles: bold, italics, and underline. In QuickHelp viewer, these attributes
+are rendered as follows:
+
+  Value  Style                   Foreground Color      Background Color
+  ---------------------------------------------------------------------
+  0      Normal (default)        white                 black
+  1      Bold                    highlighted white     black
+  2      Italics                 green                 black
+  3      Bold+Italics            cyan                  black
+  4      Underline               red                   black
+  5      Bold+Underline          highlighted white     cyan
+  6      Italics+Underline       white                 black
+  7      Bold+Italics+Underline  black                 black
+
+Although it is possible to associate multiple styles with a single character,
+applying too many visual effects may cause confusion to the user, and is
+usually avoided in practice.
+
+"Hyperlinks" associates a range of characters in a line with a link target.
+The link target must be in one of the following forms:
+
+  1. a context string -- matches a context in the current help database or
+     another help database;
+  2. a 16-bit integer -- the highest bit must be one; the rest 15 bits
+     specifies a topic index in the current help database.
+
+Hyperlinks are defined orthogonal to text styles. Two hyperlinks must not
+overlap.
+
+With this model in mind, below we describe the QuickHelp binary format.
+
+Each topic is first split into lines. Colon commands (see MASM docs for a
+detailed description) are treated as plain text when stored. Each line
+consists of a text block and an attribute block, like below:
+
+  +-----------------+
+  | TextBlockLen(X) |   1 byte     number of bytes in text block, including
+  +-----------------+              the "TextBlockLen" byte
+  .                 .
+  .  TextBlockData  .   X-1 bytes  characters in the line, stripped of any
+  .                 .              formatting information
+  +-----------------+
+  | AttrBlockLen(Y) |   1 byte     number of bytes in attribute block,
+  +-----------------+              including the "AttrBlockLen" byte
+  .                 .
+  .  AttrBlockData  .   Y-1 bytes  character style and hyperlink information;
+  .                 .              see below.
+  +-----------------+
+
+"TextBlockLen" and "AttrBlockLen" must be greater than zero.
+
+"TextBlockData" is the plain data to display. Each byte corresponds to an
+ASCII or Extended ASCII character; on Windows, this is code page 437. Note,
+however, that characters 0-31 are rendered as graphic characters instead of
+interpreted as control characters when displayed in QuickHelp; this means
+that a further mapping must be performed after transforming using CP-437.
+
+"AttrBlockData" consists of two parts: text attributes and hyperlinks. The
+text attributes part always exists; the hyperlinks part exists only if the
+line contains any hyperlink.
+
+If no hyperlink exists in a line, the format of "AttrBlockData" is
+
+   (Y-1) bytes
+  +================+
+  | TextAttributes |
+  +================+
+
+If hyperlinks are present in a line, the format of "AttrBlockData" is
+
+   (? bytes)        1 byte (? bytes)  --> total (Y-1) bytes
+  +================+------+============+
+  | TextAttributes | 0xFF | Hyperlinks |
+  +================+------+============+
+
+"TextAttributes" is an alternating list of "chunk length" and "character
+attributes" for each chunk of text in the line. This is illustrated below:
+
+  +--------------+
+  |  ChunkLen 0  |   1 byte
+  +--------------+
+  |  Attribute 1 |   1 byte
+  +--------------+
+  |  ChunkLen 1  |   1 byte
+  +--------------+
+  |  Attribute 2 |   1 byte
+  +--------------+
+  |  ChunkLen 2  |   1 byte
+  +--------------+
+  ~     ...      ~   ...
+  +--------------+
+
+This list always starts with a ChunkLen[0] field; the default style applies
+to the first (ChunkLen[0]) characters in the line. The next ChunkLen[1] 
+characters applies the styles in Attribute[1]; following that, the next
+ChunkLen[2] characters applies the styles in Attribute[2]; and so on.
+
+Each Attribute field has the following bit format:
+
+    7   6   5   4   3   2   1   0
+  +---+---+---+---+---+---+---+---+
+  | 0 | 0 | 0 | 0 | 0 | U | I | B |
+  +---+---+---+---+---+---+---+---+
+    |_______________|   |   |   |---- Bold
+            |           |   |-------- Italics
+        reserved;       |------------ Underline
+        must be 0.
+
+Each Attribute[i] field replaces the previous attribute; the style bits are
+not merged or toggled.
+
+"Hyperlinks" are an array of variable-length records, where each record
+defines a hyperlink in the line. The format of a record is:
+
+  +--------------+
+  |  StartIndex  |   1 byte   ONE-based index of the first character in the
+  +--------------+            hyperlink, inclusive.
+  |   EndIndex   |   1 byte   ONE-based index of the last character in the
+  +--------------+            hyperlink, (inclusive.
+  |    Context   |   ? bytes  NULL-terminated context string that specifies
+  |    String    |            the link target; empty string to indicate that
+  +--------------+            TopicIndex should be used as the link target.
+  |  TopicIndex  |   WORD, OPTIONAL, present only if ContextString is empty
+  +--------------+
+
+
+Stage 2: Dictionary substitution and run-length encoding
+--------------------------------------------------------
+
+The compressed data is a byte stream that has the following format.
+
+Each byte in the compressed stream is either a control byte or a value byte.
+This is determined as follows:
+
+  Byte 00 - 0F : value byte
+  Byte 10 - 1A : control byte
+  Byte 1B - FF : value byte
+
+During decoding, value bytes are copied as is to the output, unless they
+follow a control byte and is treated as an argument. See below.
+
+There are eleven control bytes, valued from 0x10 (16) to 0x1A (26). A
+control byte may take one or two bytes as arguments. The format of each
+control byte is summarized below.
+
+  Hex     Dec       Control Byte      Argument Byte 1    Argument Byte 2
+
+                  +-----------------+-----------------+
+  10-17   16-23   | 0 0 0 1 0 A D D | D D D D D D D D |
+                  |           S 9 8 | 7 6 5 4 3 2 1 0 |
+                  +-----------------+-----------------+
+
+                  +-----------------+-----------------+
+  18      24      | 0 0 0 1 1 0 0 0 |   SPACE-COUNT   |
+                  +-----------------+-----------------+
+
+                  +-----------------+-----------------+-----------------+
+  19      25      | 0 0 0 1 1 0 0 1 |   REPEAT-BYTE   |  REPEAT-LENGTH  |
+                  +-----------------+-----------------+-----------------+
+
+                  +-----------------+-----------------+
+  1A      26      | 0 0 0 1 1 0 1 0 |   ESCAPE-BYTE   |
+                  +-----------------+-----------------+
+
+Control bytes 10h-17h encodes a dictionary entry index. The index, D, is
+specified by the lower 2 bits of the control byte, followed by the 8 bits
+in the argument byte that follows. (This gives 10 bits available; hence the
+dictionary can contain no more than 1024 entries.) The dictionary entry is
+copied to the output. If the AS (Append-Space) bit is 1, a space (ASCII 32)
+is appended to the output.
+
+Control byte 18h encodes a run of spaces (ASCII 32). The number of spaces
+is specified by the argument byte that follows. This many spaces are appended
+to the output.
+
+Control byte 19h encodes a run of bytes. The byte to repeat is given by the
+first argument, and the run-length is given by the second argument. That many
+bytes are repeated and appended to the output.
+
+Control byte 1Ah escapes the next byte (argument) in the compressed stream.
+The argument is written as is to the output. This is necessary to output a
+byte in the range 10h to 1Ah.
+
+
+Stage 3: Huffman coding
+-----------------------
+
+The resulting binary data from Stage 2 is encoded by a huffman coder. The
+huffman tree encodes 256 symbols (i.e. byte value 0 - 255). There is no limit
+on the number of bits used to encode each symbol.
+
+  +----------+==============+
+  |  OUTLEN  |  BIT STREAM  |
+  +----------+==============+
+
+OUTLEN is the number of bytes in the binary topic data that is produced by
+Stage 1. Note that it is NOT the compressed data produced by Stage 2.
+
+BIT STREAM is a bit stream that contains the huffman-encoded data from 
+Stage 2. For each byte in the stream, the bits are written to (and read from)
+starting from the MOST significant bit of that byte; there may be extra,
+unused bits at the end of the last byte. This is why we need the OUTLEN field.

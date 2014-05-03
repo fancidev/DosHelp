@@ -34,7 +34,26 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converters\HtmlConverter.cs" />
+    <Compile Include="Converters\TextConverter.cs" />
+    <Compile Include="HelpCommand.cs" />
+    <Compile Include="HelpDatabase.cs" />
+    <Compile Include="HelpLine.cs" />
+    <Compile Include="HelpSystem.cs" />
+    <Compile Include="HelpTopic.cs" />
+    <Compile Include="HelpUri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\BitStream.cs" />
+    <Compile Include="Serialization\BufferReader.cs" />
+    <Compile Include="Serialization\CompressionStream.cs" />
+    <Compile Include="Serialization\DatabaseDecoder.cs" />
+    <Compile Include="Serialization\Graphic437Encoding.cs" />
+    <Compile Include="Serialization\HelpFile.cs" />
+    <Compile Include="Serialization\HuffmanStream.cs" />
+    <Compile Include="Serialization\TopicDecoder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Serialization\Format.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
