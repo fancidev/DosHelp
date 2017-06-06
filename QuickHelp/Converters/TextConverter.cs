@@ -12,7 +12,7 @@ namespace QuickHelp.Converters
         public static string ConvertTopic(HelpTopic topic)
         {
             if (topic == null)
-                throw new ArgumentNullException("topic");
+                throw new ArgumentNullException(nameof(topic));
 
             StringBuilder sb = new StringBuilder();
             foreach (HelpLine line in topic.Lines)

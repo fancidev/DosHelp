@@ -54,7 +54,7 @@ namespace QuickHelp
         public HelpUri(int topicIndex)
         {
             if (topicIndex < 0 || topicIndex >= 0x8000)
-                throw new ArgumentOutOfRangeException("topicIndex");
+                throw new ArgumentOutOfRangeException(nameof(topicIndex));
 
             this.target = string.Format("@L{0:X4}", topicIndex | 0x8000);
         }
@@ -66,7 +66,7 @@ namespace QuickHelp
         public HelpUri(string target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             this.target = target;
         }

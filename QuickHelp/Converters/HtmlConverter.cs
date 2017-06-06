@@ -30,7 +30,7 @@ namespace QuickHelp.Converters
         public string ConvertTopic(HelpTopic topic)
         {
             if (topic == null)
-                throw new ArgumentNullException("topic");
+                throw new ArgumentNullException(nameof(topic));
 
             StringBuilder html = new StringBuilder();
             html.AppendFormat("<html><head><title>{0}</title></head>\r\n",
@@ -123,7 +123,7 @@ namespace QuickHelp.Converters
         {
             if ((change & TextStyle.Bold) != 0)
                 html.Append("<b>");
-            if ((change & TextStyle.Italics) != 0)
+            if ((change & TextStyle.Italic) != 0)
                 html.Append("<i>");
             if ((change & TextStyle.Underline) != 0)
                 html.Append("<u>");
@@ -134,7 +134,7 @@ namespace QuickHelp.Converters
         {
             if ((change & TextStyle.Bold) != 0)
                 html.Append("</b>");
-            if ((change & TextStyle.Italics) != 0)
+            if ((change & TextStyle.Italic) != 0)
                 html.Append("</i>");
             if ((change & TextStyle.Underline) != 0)
                 html.Append("</u>");

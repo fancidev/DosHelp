@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.IO;
 
 namespace QuickHelp.Serialization
@@ -16,11 +14,11 @@ namespace QuickHelp.Serialization
         public static void Decode(byte[] input, HelpTopic topic, HelpFile file)
         {
             if (input == null)
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(input));
             if (topic == null)
-                throw new ArgumentNullException("topic");
+                throw new ArgumentNullException(nameof(topic));
             if (file == null)
-                throw new ArgumentNullException("file");
+                throw new ArgumentNullException(nameof(file));
 
             // The first two bytes indicates decoded length.
             if (input.Length < 2)
@@ -51,7 +49,7 @@ namespace QuickHelp.Serialization
                 System.Diagnostics.Debug.WriteLine(string.Format(
                     "{0} [Topic #{1}]: Actual decoded length ({2}) " +
                     "is different from stated decoded length ({3}).",
-                    file.Header.FileName,
+                    file.Header.DatabaseName,
                     -1,
                     output.Length,
                     decodedLength));
@@ -150,7 +148,7 @@ namespace QuickHelp.Serialization
                     if ((a & 1) != 0)
                         textStyle |= TextStyle.Bold;
                     if ((a & 2) != 0)
-                        textStyle |= TextStyle.Italics;
+                        textStyle |= TextStyle.Italic;
                     if ((a & 4) != 0)
                         textStyle |= TextStyle.Underline;
                     if ((a & 0xF8) != 0)

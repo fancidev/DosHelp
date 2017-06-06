@@ -16,9 +16,9 @@ namespace QuickHelp
         public HelpLine(string text, TextAttribute[] attributes)
         {
             if (text == null)
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             if (attributes == null)
-                throw new ArgumentNullException("attributes");
+                throw new ArgumentNullException(nameof(attributes));
             if (text.Length != attributes.Length)
                 throw new ArgumentException("text and attributes must have the same length.");
 
@@ -29,7 +29,7 @@ namespace QuickHelp
         public HelpLine(string text)
         {
             if (text == null)
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
 
             this.text = text;
             this.attributes = new TextAttribute[text.Length];
@@ -109,7 +109,7 @@ namespace QuickHelp
     {
         None = 0,
         Bold = 1,
-        Italics = 2,
+        Italic = 2,
         Underline = 4,
     }
 

@@ -29,7 +29,7 @@ namespace QuickHelp
         public HelpDatabase FindDatabase(string name)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             foreach (HelpDatabase database in databases)
             {
@@ -42,7 +42,7 @@ namespace QuickHelp
         public HelpTopic ResolveUri(HelpDatabase referrer, HelpUri uri)
         {
             if (uri == null)
-                throw new ArgumentNullException("link");
+                throw new ArgumentNullException(nameof(uri));
 
             HelpUriType uriType = uri.Type;
             if (uriType == HelpUriType.TopicIndex)

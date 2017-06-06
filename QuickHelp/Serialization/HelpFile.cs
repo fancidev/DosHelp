@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace QuickHelp.Serialization
 {
@@ -14,7 +12,7 @@ namespace QuickHelp.Serialization
         public HelpFileHeader Header;
         public int[] TopicOffsets;
         public string[] ContextStrings;
-        public UInt16[] ContextTopics;
+        public UInt16[] ContextMapping;
         public byte[][] Dictionary;
         public CompactHuffmanTree HuffmanTree;
     }
@@ -28,14 +26,14 @@ namespace QuickHelp.Serialization
         public byte Unknown3;
         public UInt16 TopicCount;
         public UInt16 ContextCount;
-        public byte TextWidth;
+        public byte DisplayWidth;
         public byte Unknown4;
         public UInt16 Unknown5;
-        public string FileName;
+        public string DatabaseName;
         public int reserved1;
         public int TopicOffsetsOffset;
         public int ContextStringsOffset;
-        public int ContextTopicsOffset;
+        public int ContextMappingOffset;
         public int DictionaryOffset;
         public int HuffmanTreeOffset;
         public int TopicDataOffset;

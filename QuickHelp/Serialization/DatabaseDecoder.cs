@@ -88,14 +88,14 @@ namespace QuickHelp.Serialization
 
             // Create a help database and initialize its structure.
             bool isCaseSensitive = (header.Attributes & HelpFileAttributes.CaseSensitive) != 0;
-            HelpDatabase database = new HelpDatabase(header.FileName, isCaseSensitive);
+            HelpDatabase database = new HelpDatabase(header.DatabaseName, isCaseSensitive);
             for (int i = 0; i < file.Header.TopicCount; i++)
             {
                 database.NewTopic();
             }
             for (int i = 0; i < file.Header.ContextCount; i++)
             {
-                database.AddContext(file.ContextStrings[i], file.ContextTopics[i]);
+                database.AddContext(file.ContextStrings[i], file.ContextMapping[i]);
             }
 
             // Decode the actual topics.
@@ -167,20 +167,20 @@ namespace QuickHelp.Serialization
             header.Unknown3 = reader.ReadByte();
             header.TopicCount = reader.ReadUInt16();
             header.ContextCount = reader.ReadUInt16();
-            header.TextWidth = reader.ReadByte();
+            header.DisplayWidth = reader.ReadByte();
             header.Unknown4 = reader.ReadByte();
             header.Unknown5 = reader.ReadUInt16();
 
             byte[] stringData = reader.ReadBytes(14);            
-            header.FileName = Encoding.ASCII.GetString(stringData);
-            int k = header.FileName.IndexOf('\0');
+            header.DatabaseName = Encoding.ASCII.GetString(stringData);
+            int k = header.DatabaseName.IndexOf('\0');
             if (k >= 0)
-                header.FileName = header.FileName.Substring(0, k);
+                header.DatabaseName = header.DatabaseName.Substring(0, k);
 
             header.reserved1 = reader.ReadInt32();
             header.TopicOffsetsOffset = reader.ReadInt32();
             header.ContextStringsOffset = reader.ReadInt32();
-            header.ContextTopicsOffset = reader.ReadInt32();
+            header.ContextMappingOffset = reader.ReadInt32();
             header.DictionaryOffset = reader.ReadInt32();
             header.HuffmanTreeOffset = reader.ReadInt32();
             header.TopicDataOffset = reader.ReadInt32();
@@ -209,24 +209,24 @@ namespace QuickHelp.Serialization
                 throw new InvalidDataException("Invalid ContextStringsOffset.");
 
             // TODO: the NULL at the very end produces an extra, empty context string.
-            int size = file.Header.ContextTopicsOffset - file.Header.ContextStringsOffset;
+            int size = file.Header.ContextMappingOffset - file.Header.ContextStringsOffset;
             string all = Encoding.ASCII.GetString(reader.ReadBytes(size));
             file.ContextStrings = all.Split('\0');
         }
 
         private static void ReadContextTopics(BinaryReader reader, HelpFile file)
         {
-            file.ContextTopics = new UInt16[file.Header.ContextCount];
-            for (int i = 0; i < file.ContextTopics.Length; i++)
+            file.ContextMapping = new UInt16[file.Header.ContextCount];
+            for (int i = 0; i < file.ContextMapping.Length; i++)
             {
-                file.ContextTopics[i] = reader.ReadUInt16();
+                file.ContextMapping[i] = reader.ReadUInt16();
             }
         }
 
         private static void ReadDictionary(BinaryReader reader, HelpFile file)
         {
             if (file.Header.DictionaryOffset !=
-                file.Header.ContextTopicsOffset + 2 * file.ContextTopics.Length)
+                file.Header.ContextMappingOffset + 2 * file.ContextMapping.Length)
                 throw new InvalidDataException("Invalid DictionaryOffset");
 
             List<byte[]> entries = new List<byte[]>();

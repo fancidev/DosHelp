@@ -16,9 +16,9 @@ namespace QuickHelp
         internal HelpTopic(HelpDatabase database, int topicIndex)
         {
             if (database == null)
-                throw new ArgumentNullException("database");
+                throw new ArgumentNullException(nameof(database));
             if (topicIndex < 0)
-                throw new IndexOutOfRangeException("topicIndex");
+                throw new IndexOutOfRangeException(nameof(topicIndex));
 
             this.database = database;
             this.topicIndex = topicIndex;

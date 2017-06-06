@@ -192,17 +192,17 @@ namespace QuickHelp
             string dotCommand, string colonCommand, string parameterFormat)
         {
             if (dotCommand == null)
-                throw new ArgumentNullException("dotCommand");
+                throw new ArgumentNullException(nameof(dotCommand));
             if (dotCommand.Length == 0 || dotCommand[0] != '.')
-                throw new ArgumentException("Dot command must start with a dot.", "command");
+                throw new ArgumentException("Dot command must start with a dot.", nameof(dotCommand));
             
             if (colonCommand == null)
-                throw new ArgumentNullException("command");
+                throw new ArgumentNullException(nameof(colonCommand));
             if (colonCommand.Length == 0 || colonCommand[0] != ':')
-                throw new ArgumentException("Colon command must start with a colon.", "command");
+                throw new ArgumentException("Colon command must start with a colon.", nameof(colonCommand));
 
             if (parameterFormat == null)
-                throw new ArgumentNullException("parameterFormat");
+                throw new ArgumentNullException(nameof(parameterFormat));
 
             this.dotCommand = dotCommand;
             this.colonCommand = colonCommand;
