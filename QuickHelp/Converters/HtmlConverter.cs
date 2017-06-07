@@ -52,81 +52,116 @@ namespace QuickHelp.Converters
         /// </summary>
         /// <returns>HTML representation of the line.</returns>
         /// <remarks>
-        /// This method does not guarantee that the generated html is XML
-        /// conformant. Consider the following example:
-        ///   ...<b>...<i>...</b>...</i>...
-        /// If XML conformance is required, this would have to be changed
-        /// into
-        ///   ...<b>...<i>...</i></b><i>...</i>...
-        /// While this could be done, it adds complexity and increases output
-        /// size with no added value, since every web browser can handle the
-        /// previous markup as expected.
+        /// This method produces properly structured HTML. That is, it avoids
+        /// markup such as 
         /// 
-        /// For a formal discussion about this issue, see the HTML 5 section
+        ///   ...<b>...<i>...</b>...</i>...
+        /// 
+        /// The generated HTML is not the most compact possible, but is quite
+        /// compact in practice.
+        /// 
+        /// For a formal discussion about unpaired tags, see
         /// http://www.w3.org/html/wg/drafts/html/master/syntax.html#an-introduction-to-error-handling-and-strange-cases-in-the-parser
         /// </remarks>
         private void FormatLine(StringBuilder html, HelpTopic topic, HelpLine line)
         {
-            TextAttribute oldAttrs = TextAttribute.Default;
-
-            for (int i = 0; i < line.Text.Length; i++)
+            if (this.AutoFixHyperlinks)
             {
-                TextAttribute newAttrs = line.Attributes[i];
+                line = FixLine(line);
+            }
+            for (int index = 0; index < line.Length;)
+            {
+                index = FormatLineSegment(html, topic, line, index);
+            }
+            html.AppendLine();
+        }
+
+        private static HelpLine FixLine(HelpLine line)
+        {
+            TextAttribute[] attributes = new TextAttribute[line.Length];
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (line.Text[i] == '►' &&
+                    line.Attributes[i].Link != null &&
+                    (i == line.Length - 1 || line.Attributes[i + 1].Link == null))
+                {
+                    attributes[i] = new TextAttribute(line.Attributes[i].Style, null);
+                }
+                else
+                {
+                    attributes[i] = line.Attributes[i];
+                }
+            }
+            return new HelpLine(line.Text, attributes);
+        }
+
+        private int FormatLineSegment(StringBuilder html, HelpTopic topic, HelpLine line, int startIndex)
+        {
+            HelpUri link = line.Attributes[startIndex].Link;
+            if (link != null)
+            {
+                html.AppendFormat("<a href=\"{0}\">", ConvertUri(topic, link));
+            }
+
+            Stack<TextStyle> openTags = new Stack<TextStyle>();
+            int index = startIndex;
+            while (index < line.Length && line.Attributes[index].Link == link)
+            {
+                TextAttribute oldAttrs = (index == startIndex) ?
+                    TextAttribute.Default : line.Attributes[index - 1];
+                TextAttribute newAttrs = line.Attributes[index];
                 TextStyle addedStyles = newAttrs.Style & ~oldAttrs.Style;
                 TextStyle removedStyles = oldAttrs.Style & ~newAttrs.Style;
 
-                if (removedStyles != TextStyle.None)
-                    FormatRemovedStyles(html, removedStyles);
-                if (addedStyles != TextStyle.None)
-                    FormatAddedStyles(html, addedStyles);
-
-                if (AutoFixHyperlinks)
+                while (removedStyles != TextStyle.None)
                 {
-                    if (line.Text[i] == '►' &&
-                        newAttrs.Link != null &&
-                        (i == line.Length - 1 || line.Attributes[i + 1].Link == null))
+                    TextStyle top = openTags.Pop();
+                    FormatRemovedStyles(html, top);
+                    if ((removedStyles & top) != 0)
                     {
-                        newAttrs = new TextAttribute(newAttrs.Style, null);
+                        removedStyles &= ~top;
+                    }
+                    else
+                    {
+                        addedStyles |= top;
                     }
                 }
 
-                if (newAttrs.Link != oldAttrs.Link)
+                if ((addedStyles & TextStyle.Bold) != 0)
                 {
-                    if (oldAttrs.Link != null)
-                        html.Append("</a>");
-                    if (newAttrs.Link != null)
-                    {
-                        html.AppendFormat("<a href=\"{0}\">",
-                                          ConvertUri(topic, newAttrs.Link));
-                    }
+                    html.Append("<b>");
+                    openTags.Push(TextStyle.Bold);
                 }
-                html.Append(Escape("" + line.Text[i]));
-                oldAttrs = line.Attributes[i];
+                if ((addedStyles & TextStyle.Italic) != 0)
+                {
+                    html.Append("<i>");
+                    openTags.Push(TextStyle.Italic);
+                }
+                if ((addedStyles & TextStyle.Underline) != 0)
+                {
+                    html.Append("<u>");
+                    openTags.Push(TextStyle.Underline);
+                }
+
+                html.Append(Escape("" + line.Text[index]));
+                index++;
             }
 
-            // Reset styles and links at end of line.
-            if (oldAttrs.Link != null)
+            while (openTags.Count > 0)
+            {
+                FormatRemovedStyles(html, openTags.Pop());
+            }
+            if (link != null)
+            {
                 html.Append("</a>");
-            if (oldAttrs.Style != TextStyle.None)
-                FormatRemovedStyles(html, oldAttrs.Style);
+            }
 
-            html.AppendLine();
+            return index;
         }
 
         protected virtual string ConvertUri(HelpTopic topic, HelpUri uri)
         {
             return "?" + Escape(uri.ToString());
-        }
-
-        private static void FormatAddedStyles(
-            StringBuilder html, TextStyle change)
-        {
-            if ((change & TextStyle.Bold) != 0)
-                html.Append("<b>");
-            if ((change & TextStyle.Italic) != 0)
-                html.Append("<i>");
-            if ((change & TextStyle.Underline) != 0)
-                html.Append("<u>");
         }
 
         private static void FormatRemovedStyles(
