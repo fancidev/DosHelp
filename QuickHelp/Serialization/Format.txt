@@ -255,7 +255,7 @@ In the QuickHelp binary format, each line is represented by two parts:
 information.
 
 "Styles" associate each character with one or more of the following styles:
-bold, italic, and underlined. In QuickHelp viewer, the styles are rendered as
+bold, italic, and underline. In QuickHelp viewer, the styles are rendered as
 follows:
 
   Value  Style                   Foreground Color      Background Color
@@ -264,10 +264,10 @@ follows:
   1      Bold                    highlighted white     black
   2      Italic                  green                 black
   3      Bold+Italic             cyan                  black
-  4      Underlined              red                   black
-  5      Bold+Underlined         highlighted white     cyan
-  6      Italic+Underlined       white                 black
-  7      Bold+Italic+Underlined  black                 black
+  4      Underline               red                   black
+  5      Bold+Underline          highlighted white     cyan
+  6      Italic+Underline        white                 black
+  7      Bold+Italic+Underline   black                 black
 
 "Links" associate a range of characters in a line with a link target. The link
 target must take one of the following forms:

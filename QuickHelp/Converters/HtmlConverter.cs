@@ -110,34 +110,34 @@ namespace QuickHelp.Converters
                 TextAttribute oldAttrs = (index == startIndex) ?
                     TextAttribute.Default : line.Attributes[index - 1];
                 TextAttribute newAttrs = line.Attributes[index];
-                TextStyle addedStyles = newAttrs.Style & ~oldAttrs.Style;
-                TextStyle removedStyles = oldAttrs.Style & ~newAttrs.Style;
+                TextStyle stylesToAdd = newAttrs.Style & ~oldAttrs.Style;
+                TextStyle stylesToRemove = oldAttrs.Style & ~newAttrs.Style;
 
-                while (removedStyles != TextStyle.None)
+                while (stylesToRemove != TextStyle.None)
                 {
                     TextStyle top = openTags.Pop();
                     FormatRemovedStyles(html, top);
-                    if ((removedStyles & top) != 0)
+                    if ((stylesToRemove & top) != 0)
                     {
-                        removedStyles &= ~top;
+                        stylesToRemove &= ~top;
                     }
                     else
                     {
-                        addedStyles |= top;
+                        stylesToAdd |= top;
                     }
                 }
 
-                if ((addedStyles & TextStyle.Bold) != 0)
+                if ((stylesToAdd & TextStyle.Bold) != 0)
                 {
                     html.Append("<b>");
                     openTags.Push(TextStyle.Bold);
                 }
-                if ((addedStyles & TextStyle.Italic) != 0)
+                if ((stylesToAdd & TextStyle.Italic) != 0)
                 {
                     html.Append("<i>");
                     openTags.Push(TextStyle.Italic);
                 }
-                if ((addedStyles & TextStyle.Underline) != 0)
+                if ((stylesToAdd & TextStyle.Underline) != 0)
                 {
                     html.Append("<u>");
                     openTags.Push(TextStyle.Underline);

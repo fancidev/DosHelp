@@ -42,7 +42,7 @@ namespace QuickHelp
 
         /// <summary>
         /// Gets the text in this line without any formatting information.
-        /// This is the text that would appear on the screen.
+        /// This is the text displayed on the screen.
         /// </summary>
         public string Text
         {
@@ -101,6 +101,14 @@ namespace QuickHelp
             get { return link; }
         }
 
+        public override string ToString()
+        {
+            if (link == null)
+                return style.ToString();
+            else
+                return style.ToString() + "; " + link.ToString();
+        }
+
         public static readonly TextAttribute Default = new TextAttribute();
     }
 
@@ -112,7 +120,7 @@ namespace QuickHelp
         Italic = 2,
         Underline = 4,
     }
-
+    
     public class HelpLineBuilder
     {
         readonly StringBuilder textBuilder;

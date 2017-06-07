@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace QuickHelp.Converters
 {
     /// <summary>
-    /// Provides methods to convert help topics into pure text.
+    /// Provides methods to convert help topics to plain text.
     /// </summary>
     public class TextConverter
     {
