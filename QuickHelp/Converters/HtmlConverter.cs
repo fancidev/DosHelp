@@ -35,14 +35,35 @@ namespace QuickHelp.Converters
             StringBuilder html = new StringBuilder();
             html.AppendFormat("<html><head><title>{0}</title></head>\r\n",
                               Escape(topic.Title));
-            html.AppendLine("<body><pre>");
+            html.AppendLine("<body>");
 
-            foreach (HelpLine line in topic.Lines)
+            int freezeHeight = Math.Max(
+                0, Math.Min(topic.FreezeHeight, topic.Lines.Count));
+
+            if (freezeHeight > 0)
             {
-                FormatLine(html, topic, line);
+                html.Append("<pre class=\"banner\">");
+                for (int i = 0; i < freezeHeight; i++)
+                {
+                    FormatLine(html, topic, topic.Lines[i]);
+                    if (i < freezeHeight - 1)
+                        html.AppendLine();
+                }
+                html.AppendLine("</pre>");
             }
 
-            html.AppendLine("</pre></body>");
+            if (freezeHeight < topic.Lines.Count)
+            {
+                html.Append("<pre class=\"content\">");
+                for (int i = freezeHeight; i < topic.Lines.Count; i++)
+                {
+                    FormatLine(html, topic, topic.Lines[i]);
+                    if (i < topic.Lines.Count - 1)
+                        html.AppendLine();
+                }
+                html.AppendLine("</pre>");
+            }
+
             html.AppendLine("</html>");
             return html.ToString();
         }
@@ -73,7 +94,6 @@ namespace QuickHelp.Converters
             {
                 index = FormatLineSegment(html, topic, line, index);
             }
-            html.AppendLine();
         }
 
         private static HelpLine FixLine(HelpLine line)
