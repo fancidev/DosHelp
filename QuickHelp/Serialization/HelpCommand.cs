@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace QuickHelp
+namespace QuickHelp.Serialization
 {
     /// <summary>
     /// Specifies a dot or colon command in serialized help content.

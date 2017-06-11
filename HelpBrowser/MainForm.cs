@@ -326,8 +326,8 @@ namespace HelpBrowser
             if (fileName == null)
                 throw new ArgumentNullException("fileName");
 
-            var decoder = new QuickHelp.Serialization.DatabaseDecoder();
-            decoder.TopicDecodingError += decoder_TopicDecodingError;
+            var decoder = new QuickHelp.Serialization.HelpBinaryDeserializer();
+            decoder.InvalidTopicData += decoder_TopicDecodingError;
 
             using (FileStream stream = File.OpenRead(fileName))
             using (BinaryReader reader = new BinaryReader(stream))
@@ -352,7 +352,7 @@ namespace HelpBrowser
             get { return topicsWithError; }
         }
 
-        private void decoder_TopicDecodingError(object sender, QuickHelp.Serialization.TopicDecodingError e)
+        private void decoder_TopicDecodingError(object sender, QuickHelp.Serialization.InvalidTopicDataEventArgs e)
         {
             topicsWithError.Add(e.Topic);
         }
