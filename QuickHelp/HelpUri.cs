@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Globalization;
 
 namespace QuickHelp
 {
     /// <summary>
-    /// Represents a location within a help system.
+    /// Refers to a location within a help system.
     /// </summary>
     /// <remarks>
-    /// A help uri may take one of the following formats, and is resolved
-    /// in that order:
+    /// A help uri may take one of the following formats, and is resolved in
+    /// that order:
     ///
     /// @LXXXX -- where XXXX is a hexidecimal number with the higest bit set
     ///     Display the topic with index (XXXX & 0x7FFF) in the local
@@ -44,8 +42,8 @@ namespace QuickHelp
         readonly string target;
 
         /// <summary>
-        /// Constructs a uri that points to a topic in the local database.
-        /// This corresponds to "local context" in QuickHelp terms.
+        /// Creates a uri that points to a topic in the local database. This
+        /// is called "local context" in QuickHelp terms.
         /// </summary>
         /// <param name="topicIndex">Zero-based topic index.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -60,9 +58,8 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Constructs a uri directly.
+        /// Creates a uri directly.
         /// </summary>
-        /// <param name="target"></param>
         public HelpUri(string target)
         {
             if (target == null)
@@ -71,6 +68,9 @@ namespace QuickHelp
             this.target = target;
         }
 
+        /// <summary>
+        /// Gets the type of location this uri refers to.
+        /// </summary>
         public HelpUriType Type
         {
             get
@@ -81,7 +81,7 @@ namespace QuickHelp
                 if (target.StartsWith("@"))
                 {
                     if (TopicIndex >= 0)
-                        return HelpUriType.TopicIndex;
+                        return HelpUriType.LocalTopic;
                     else
                         return HelpUriType.LocalContext;
                 }
@@ -123,9 +123,12 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Gets the database name part of the url. This is the text on the
-        /// left of the first '!'. If it contains no '!', returns null.
+        /// Gets the database name component of the url.
         /// </summary>
+        /// <value>
+        /// The text to the left of the first '!' in the uri, or <c>null</c>
+        /// if the uri does not contain any '!'.
+        /// </value>
         public string DatabaseName
         {
             get
@@ -139,10 +142,12 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Gets the context string part of the url. This is the text on the
-        /// right of the first '!'. If it contains no '!', returns the entire
-        /// target string.
+        /// Gets the context string component of the url.
         /// </summary>
+        /// <value>
+        /// The text to the right of the first '!', or the entire target if
+        /// the uri does not contain any '!'.
+        /// </value>
         public string ContextString
         {
             get
@@ -177,14 +182,14 @@ namespace QuickHelp
         Command = 1,
 
         /// <summary>
-        /// The uri contains a topic index that must be resolved in the
-        /// local database.
+        /// The uri contains a topic index to be resolved in the local
+        /// database.
         /// </summary>
-        TopicIndex = 2,
+        LocalTopic = 2,
 
         /// <summary>
-        /// The uri contains a context string that must be resolved in the
-        /// local database.
+        /// The uri contains a context string to be resolved in the local
+        /// database.
         /// </summary>
         LocalContext = 3,
 

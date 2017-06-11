@@ -45,7 +45,7 @@ namespace QuickHelp
                 throw new ArgumentNullException(nameof(uri));
 
             HelpUriType uriType = uri.Type;
-            if (uriType == HelpUriType.TopicIndex)
+            if (uriType == HelpUriType.LocalTopic)
             {
                 if (referrer != null)
                 {

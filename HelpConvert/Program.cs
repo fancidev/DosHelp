@@ -121,7 +121,7 @@ namespace HelpConvert
                     }
                     break;
 
-                case HelpUriType.TopicIndex:
+                case HelpUriType.LocalTopic:
                     return string.Format("T{0:X4}.html", uri.TopicIndex);
 
                 case HelpUriType.Command:
