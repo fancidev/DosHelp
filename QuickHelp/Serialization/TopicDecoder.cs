@@ -42,7 +42,8 @@ namespace QuickHelp.Serialization
 
             topic.Lines.Clear();
             topic.Source = output;
-            DecodeTopic(output, topic);
+            DecodeTopic(output, topic, Graphic437.GetChars(
+                new byte[] { file.Header.ControlCharacter })[0]);
 
             if (output.Length != decodedLength)
             {
@@ -56,7 +57,8 @@ namespace QuickHelp.Serialization
             }
         }
 
-        internal static void DecodeTopic(byte[] buffer, HelpTopic topic)
+        internal static void DecodeTopic(
+            byte[] buffer, HelpTopic topic, char controlCharacter)
         {
             BufferReader reader = new BufferReader(buffer, Graphic437);
 
@@ -75,7 +77,8 @@ namespace QuickHelp.Serialization
                 }
 
                 // TODO: handle control character override.
-                bool isCommand = HelpCommandConverter.ProcessColonCommand(line.Text, topic);
+                bool isCommand = HelpCommandConverter.ProcessColonCommand(
+                    line.Text, controlCharacter, topic);
                 if (!isCommand)
                 {
                     topic.Lines.Add(line);

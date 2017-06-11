@@ -3,15 +3,12 @@ using System.Collections.Generic;
 
 namespace QuickHelp
 {
-    // may rename to ColonCommand
-
     /// <summary>
-    /// Represents a control command in Help text. This is only related to
-    /// the storage format, and therefore is not visible outside the assembly.
+    /// Specifies a dot or colon command in serialized help content.
     /// </summary>
     /// <remarks>
-    /// A control command typically starts with ':', but can be overridden to
-    /// use other characters.
+    /// Because dot or colon commands are only relevant in serialized format,
+    /// this enum and related classes are internal to the assembly.
     /// </remarks>
     enum HelpCommand
     {
@@ -23,14 +20,14 @@ namespace QuickHelp
         /// QuickHelp Categories command, which displays the list of topics.
         /// Supported only by QuickHelp.
         /// </summary>
-        [CommandFormat(".category", ":c", "string")]
+        [HelpCommandFormat(".category", ":c", "string")]
         Category,
 
         /// <summary>
         /// Indicates that the topic cannot be displayed. Use this command to
         /// hide command topics and other internal information.
         /// </summary>
-        [CommandFormat(".command", ":x", null)]
+        [HelpCommandFormat(".command", ":x", null)]
         Command,
 
         /// <summary>
@@ -38,21 +35,21 @@ namespace QuickHelp
         /// in the source file. Comments are not inserted in the database and
         /// are not restored during decoding.
         /// </summary>
-        [CommandFormat(".comment", null, "string")]
-        [CommandFormat("..", null, "string")]
+        [HelpCommandFormat(".comment", null, "string")]
+        [HelpCommandFormat("..", null, "string")]
         Comment,
 
         /// <summary>
         /// Takes a string as parameter. The string defines a context.
         /// </summary>
-        [CommandFormat(".context", null, "string")]
+        [HelpCommandFormat(".context", null, "string")]
         Context,
 
         /// <summary>
         /// Ends a paste section. See the .paste command. Supported only by
         /// QuickHelp.
         /// </summary>
-        [CommandFormat(".end", ":e", null)]
+        [HelpCommandFormat(".end", ":e", null)]
         End,
 
         /// <summary>
@@ -60,20 +57,20 @@ namespace QuickHelp
         /// .execute Pmark context represents a jump to the specified context
         /// at the specified mark. See the .mark command.
         /// </summary>
-        [CommandFormat(".execute", ":y", "command")]
+        [HelpCommandFormat(".execute", ":y", "command")]
         Execute,
 
         /// <summary>
         /// Locks the first numlines lines at the top of the screen. These
         /// lines do not move when the text is scrolled.
         /// </summary>
-        [CommandFormat(".freeze", ":z", "numlines")]
+        [HelpCommandFormat(".freeze", ":z", "numlines")]
         Freeze,
 
         /// <summary>
         /// Sets the default window size for the topic in topiclength lines.
         /// </summary>
-        [CommandFormat(".length", ":l", "topiclength")]
+        [HelpCommandFormat(".length", ":l", "topiclength")]
         Length,
 
         /// <summary>
@@ -82,7 +79,7 @@ namespace QuickHelp
         /// HELPMAKE error messages. See .source. The .line command is not
         /// inserted in the Help database and is not restored during decoding.
         /// </summary>
-        [CommandFormat(".line", null, "number")]
+        [HelpCommandFormat(".line", null, "number")]
         Line,
 
         /// <summary>
@@ -94,7 +91,7 @@ namespace QuickHelp
         /// terminated by two spaces or a newline character and looks up that
         /// string. Otherwise, Help looks up the first word.
         /// </summary>
-        [CommandFormat(".list", ":i", null)]
+        [HelpCommandFormat(".list", ":i", null)]
         List,
 
         /// <summary>
@@ -104,7 +101,7 @@ namespace QuickHelp
         /// specifying a column location within the marked line. Supported only
         /// by QuickHelp.
         /// </summary>
-        [CommandFormat(".mark", ":m", "name [[column]]")]
+        [HelpCommandFormat(".mark", ":m", "name [[column]]")]
         Mark,
 
         /// <summary>
@@ -113,14 +110,14 @@ namespace QuickHelp
         /// You can use this command to skip large blocks of .command or
         /// .popup topics.
         /// </summary>
-        [CommandFormat(".next", ":>", "context")]
+        [HelpCommandFormat(".next", ":>", "context")]
         Next,
 
         /// <summary>
         /// Begins a paste section. The pastename appears in the QuickHelp
         /// Paste menu. Supported only by QuickHelp.
         /// </summary>
-        [CommandFormat(".paste", ":p", "pastename")]
+        [HelpCommandFormat(".paste", ":p", "pastename")]
         Paste,
 
         /// <summary>
@@ -128,7 +125,7 @@ namespace QuickHelp
         /// window instead of as a normal, scrollable topic. Supported only
         /// by QuickHelp.
         /// </summary>
-        [CommandFormat(".popup", ":g", null)]
+        [HelpCommandFormat(".popup", ":g", null)]
         Popup,
 
         /// <summary>
@@ -137,14 +134,14 @@ namespace QuickHelp
         /// can use this command to skip large blocks of .command or .popup
         /// topics.
         /// </summary>
-        [CommandFormat(".previous", ":<", "context")]
+        [HelpCommandFormat(".previous", ":<", "context")]
         Previous,
 
         /// <summary>
         /// Turns off special processing of certain characters by the Help
         /// reader.
         /// </summary>
-        [CommandFormat(".raw", ":u", null)]
+        [HelpCommandFormat(".raw", ":u", null)]
         Raw,
 
         /// <summary>
@@ -156,7 +153,7 @@ namespace QuickHelp
         /// reference must be the first word on the line. Supported only by
         /// QuickHelp.
         /// </summary>
-        [CommandFormat(".ref", ":r", "topic[[, topic]]")]
+        [HelpCommandFormat(".ref", ":r", "topic[[, topic]]")]
         Ref,
 
         /// <summary>
@@ -168,7 +165,7 @@ namespace QuickHelp
         /// the input file. See .line. The .source command is not inserted in
         /// the Help database and is not restored during decoding.
         /// </summary>
-        [CommandFormat(".source", null, "filename")]
+        [HelpCommandFormat(".source", null, "filename")]
         Source,
 
         /// <summary>
@@ -177,18 +174,18 @@ namespace QuickHelp
         /// command is always the first line in the context unless you also
         /// use the .length or .freeze commands.
         /// </summary>
-        [CommandFormat(".topic", ":n", "text")]
+        [HelpCommandFormat(".topic", ":n", "text")]
         Topic,
     }
 
     [AttributeUsage(AttributeTargets.All, AllowMultiple=true)]
-    class CommandFormatAttribute : Attribute
+    class HelpCommandFormatAttribute : Attribute
     {
         readonly string dotCommand;
         readonly string colonCommand;
         readonly string parameterFormat;
 
-        public CommandFormatAttribute(
+        public HelpCommandFormatAttribute(
             string dotCommand, string colonCommand, string parameterFormat)
         {
             if (dotCommand == null)
@@ -213,19 +210,18 @@ namespace QuickHelp
     static class HelpCommandConverter
     {
         /// <summary>
-        /// Processes a colon command associated with a given topic. A colon
-        /// command typically sets a property, such as title, of the topic.
+        /// Processes a colon command associated with a given topic.
         /// </summary>
         /// <returns>
-        /// true if the command is successfully processed; false if the
-        /// command is not a colon command or if the parameter syntax is
-        /// invalid.
+        /// <c>true</c> if the command is successfully processed; <c>false</c>
+        /// if the command is not supported or if the syntax is invalid.
         /// </returns>
-        /// TODO: take into account control character.
-        public static bool ProcessColonCommand(string commandString, HelpTopic topic)
+        public static bool ProcessColonCommand(
+            string commandString, char controlCharacter, HelpTopic topic)
         {
             string parameter;
-            HelpCommand command = ParseColonCommand(commandString, out parameter);
+            HelpCommand command = ParseColonCommand(
+                commandString, controlCharacter, out parameter);
             if (command == HelpCommand.None)
                 return false;
 
@@ -233,16 +229,11 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Processes a colon command associated with a given topic. A colon
-        /// command typically sets a property, such as title, of the topic.
+        /// Processes a colon command associated with a given topic.
         /// </summary>
-        /// <param name="command"></param>
-        /// <param name="parameter"></param>
-        /// <param name="topic"></param>
         /// <returns>
-        /// true if the command is successfully processed; false if the
-        /// command is not a colon command or if the parameter syntax is
-        /// invalid.
+        /// <c>true</c> if the command is successfully processed; <c>false</c>
+        /// if the command is not supported or if the syntax is invalid.
         /// </returns>
         public static bool ProcessColonCommand(
             HelpCommand command, string parameter, HelpTopic topic)
@@ -356,7 +347,8 @@ namespace QuickHelp
             return true;
         }
 
-        public static HelpCommand ParseCommand(string line, out string parameters)
+        public static HelpCommand ParseCommand(
+            string line, char controlCharacter, out string parameters)
         {
             parameters = "";
 
@@ -365,17 +357,18 @@ namespace QuickHelp
 
             if (line[0] == '.')
                 return ParseDotCommand(line, out parameters);
-            else if (line[0] == ':')
-                return ParseColonCommand(line, out parameters);
+            else if (line[0] == controlCharacter)
+                return ParseColonCommand(line, controlCharacter, out parameters);
             else
                 return HelpCommand.None;
         }
 
-        public static HelpCommand ParseColonCommand(string line, out string parameters)
+        public static HelpCommand ParseColonCommand(
+            string line, char controlCharacter, out string parameters)
         {
             parameters = "";
 
-            if (line == null || line.Length < 2 || line[0] != ':')
+            if (line == null || line.Length < 2 || line[0] != controlCharacter)
                 return HelpCommand.None;
 
             HelpCommand command;
@@ -416,6 +409,8 @@ namespace QuickHelp
                 return ColonCommandToHelpCommandMapping[colonCommand];
             }
 
+            // Process source-only dot commands that do not have an equivalent
+            // colon command.
             switch (dotCommand)
             {
                 case "comment":
