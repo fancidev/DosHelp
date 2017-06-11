@@ -258,9 +258,15 @@ namespace QuickHelp
                     break;
 
                 case HelpCommand.End:
+                    if (topic.Snippets.Count > 0)
+                    {
+                        topic.Snippets[topic.Snippets.Count - 1].EndLine
+                            = topic.Lines.Count;
+                    }
                     break;
 
                 case HelpCommand.Execute:
+                    // TODO: there could be multiple execute commands.
                     topic.ExecuteCommand = parameter;
                     break;
 
@@ -289,12 +295,24 @@ namespace QuickHelp
                     break;
 
                 case HelpCommand.Mark:
+                    // TODO: to be implemented
+                    System.Diagnostics.Debug.WriteLine(string.Format(
+                        "**** NOT IMPLEMENTED **** HelpCommand.Mark @ Line {0} of Topic {1} ({2}): {3}",
+                        topic.Lines.Count, topic.TopicIndex, topic.Title, parameter));
                     break;
 
                 case HelpCommand.Next:
+                    topic.Successor = new HelpUri(parameter);
                     break;
 
                 case HelpCommand.Paste:
+                    {
+                        HelpSnippet snippet = new HelpSnippet();
+                        snippet.Name = parameter;
+                        snippet.StartLine = topic.Lines.Count;
+                        snippet.EndLine = topic.Lines.Count;
+                        topic.Snippets.Add(snippet);
+                    }
                     break;
 
                 case HelpCommand.Popup:
@@ -302,6 +320,7 @@ namespace QuickHelp
                     break;
 
                 case HelpCommand.Previous:
+                    topic.Predecessor = new HelpUri(parameter);
                     break;
 
                 case HelpCommand.Raw:
@@ -309,12 +328,28 @@ namespace QuickHelp
                     break;
 
                 case HelpCommand.Ref:
+                    if (string.IsNullOrEmpty(parameter))
+                    {
+                        // TODO: The references are in the following
+                        // lines until the next blank line. We don't
+                        // handle this for the moment.
+                    }
+                    else
+                    {
+                        string[] references = parameter.Split(',');
+                        foreach (string reference in references)
+                        {
+                            string contextString = reference.Trim();
+                            if (!string.IsNullOrEmpty(contextString))
+                                topic.References.Add(contextString);
+                        }
+                    }
                     break;
 
                 case HelpCommand.Topic:
                     topic.Title = parameter;
                     break;
-               
+
                 default:
                     return false;
             }
