@@ -326,7 +326,7 @@ namespace HelpBrowser
             if (fileName == null)
                 throw new ArgumentNullException("fileName");
 
-            var decoder = new QuickHelp.Serialization.HelpBinaryDeserializer();
+            var decoder = new QuickHelp.Serialization.BinaryHelpDeserializer();
             decoder.InvalidTopicData += decoder_TopicDecodingError;
 
             using (FileStream stream = File.OpenRead(fileName))

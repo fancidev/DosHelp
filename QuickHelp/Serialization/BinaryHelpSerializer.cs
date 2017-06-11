@@ -8,7 +8,7 @@ namespace QuickHelp.Serialization
     /// <summary>
     /// Provides methods to deserialize help databases from a .HLP file.
     /// </summary>
-    public class HelpBinaryDeserializer
+    public class BinaryHelpDeserializer
     {
         public delegate void InvalidTopicDataEventHandler(
             object sender, InvalidTopicDataEventArgs e);

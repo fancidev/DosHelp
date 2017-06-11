@@ -42,15 +42,14 @@
     <Compile Include="HelpTopic.cs" />
     <Compile Include="HelpUri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Serialization\BinaryHelpSerializer.cs" />
     <Compile Include="Serialization\BitStream.cs" />
     <Compile Include="Serialization\BufferReader.cs" />
     <Compile Include="Serialization\CompressionStream.cs" />
-    <Compile Include="Serialization\DatabaseDecoder.cs" />
     <Compile Include="Serialization\Graphic437Encoding.cs" />
     <Compile Include="Serialization\HelpCommand.cs" />
     <Compile Include="Serialization\HelpFile.cs" />
     <Compile Include="Serialization\HuffmanStream.cs" />
-    <Compile Include="Serialization\TopicDecoder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Format.txt" />
