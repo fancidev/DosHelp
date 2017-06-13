@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace QuickHelp
 {
     /// <summary>
-    /// Manages multiple cross-referenced help databases as a library.
+    /// Manages multiple cross-referenced help databases.
     /// </summary>
-    /// TODO: probably better to rename as HelpLibrary or HelpCollection?
     public class HelpSystem
     {
         readonly List<HelpDatabase> databases = new List<HelpDatabase>();
 
         /// <summary>
-        /// Gets a list of help databases contained in this library.
+        /// Gets the collection of help databases in this library.
         /// </summary>
         public List<HelpDatabase> Databases
         {
@@ -25,7 +23,6 @@ namespace QuickHelp
         /// </summary>
         /// <param name="name">Name of the database to find.</param>
         /// <returns>The help database, or null if not found.</returns>
-        /// TODO: should use a hash table to speed up.
         public HelpDatabase FindDatabase(string name)
         {
             if (name == null)
@@ -39,6 +36,15 @@ namespace QuickHelp
             return null;
         }
 
+        /// <summary>
+        /// Resolves the given uri in the current help system.
+        /// </summary>
+        /// <param name="referrer"></param>
+        /// <param name="uri"></param>
+        /// <returns>
+        /// The topic pointed to by the uri, or <c>null</c> if one cannot be
+        /// found.
+        /// </returns>
         public HelpTopic ResolveUri(HelpDatabase referrer, HelpUri uri)
         {
             if (uri == null)

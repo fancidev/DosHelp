@@ -31,7 +31,7 @@ namespace HelpConvert
 
             foreach (string fileName in fileNames)
             {
-                var decoder = new HelpBinaryDeserializer();
+                var decoder = new BinaryHelpDeserializer();
                 foreach (HelpDatabase database in decoder.LoadDatabases(fileName))
                     system.Databases.Add(database);
             }

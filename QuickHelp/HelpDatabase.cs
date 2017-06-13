@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Diagnostics;
 
 namespace QuickHelp
 {
@@ -40,7 +37,7 @@ namespace QuickHelp
         public HelpDatabase(string name, bool isCaseSensitive)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             StringComparer stringComparer = isCaseSensitive ?
                 StringComparer.InvariantCulture :
@@ -52,7 +49,7 @@ namespace QuickHelp
 
         /// <summary>
         /// Gets the name of the help database. This name is used to resolve
-        /// external context strings. The resolution is case-insensitive.
+        /// external context strings. The name is case-insensitive.
         /// </summary>
         public string Name
         {
@@ -61,14 +58,15 @@ namespace QuickHelp
 
         /// <summary>
         /// Gets or sets the file name from which this help database is loaded.
-        /// Since multiple help databases may be stored in a single physical
-        /// file, this file name is not used in context resolution.
+        /// Because multiple help databases may be stored in a single physical
+        /// file, the file name is not used in context resolution.
         /// </summary>
+        /// TODO: remove this attribute because it is not appropriate.
         public string FileName { get; set; }
 
         /// <summary>
-        /// Gets a flag that indicates whether context strings are treated as
-        /// case-sensitive. The default is false.
+        /// Gets or sets a flag that indicates whether context strings are
+        /// case-sensitive when resolving links.
         /// </summary>
         public bool IsCaseSensitive
         {
@@ -76,7 +74,7 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Gets a list of topics in this database.
+        /// Gets the collection of topics in this database.
         /// </summary>
         public List<HelpTopic> Topics
         {

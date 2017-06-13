@@ -334,7 +334,7 @@ namespace HelpBrowser
             {
                 while (stream.Position < stream.Length)
                 {
-                    HelpDatabase database = decoder.Deserialize(reader);
+                    HelpDatabase database = decoder.DeserializeDatabase(reader);
                     database.FileName = fileName;
 
                     if (system.FindDatabase(database.Name) == null)

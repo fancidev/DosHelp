@@ -7,9 +7,10 @@ namespace QuickHelp.Serialization
     /// physical file. A single physical file may contain multiple help
     /// databases concatenated one after another.
     /// </summary>
-    class HelpFile
+    /// TODO: rename to HelpBinaryMetaData
+    class BinaryHelpMetaData
     {
-        public HelpFileHeader Header;
+        public BinaryHelpFileHeader Header;
         public int[] TopicOffsets;
         public string[] ContextStrings;
         public UInt16[] ContextMapping;
@@ -17,7 +18,7 @@ namespace QuickHelp.Serialization
         public CompactHuffmanTree HuffmanTree;
     }
 
-    class HelpFileHeader
+    class BinaryHelpFileHeader
     {
         public UInt16 Signature;
         public UInt16 Unknown1;

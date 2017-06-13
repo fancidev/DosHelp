@@ -14,7 +14,7 @@ namespace QuickHelp.Serialization
             object sender, InvalidTopicDataEventArgs e);
 
         /// <summary>
-        /// Raised when invalid data is encountered during deserialization
+        /// Raised when malformed input is encountered during deserialization
         /// of a topic.
         /// </summary>
         public event InvalidTopicDataEventHandler InvalidTopicData;
@@ -26,41 +26,33 @@ namespace QuickHelp.Serialization
             {
                 while (stream.Position < stream.Length)
                 {
-                    HelpDatabase database = Deserialize(reader);
+                    HelpDatabase database = DeserializeDatabase(reader);
                     database.FileName = fileName;
                     yield return database;
                 }
             }
         }
 
-        private void RaiseInvalidTopicData(object sender, InvalidTopicDataEventArgs e)
-        {
-            if (InvalidTopicData != null)
-            {
-                InvalidTopicData(sender, e);
-            }
-        }
-
         /// <summary>
-        /// Deserializes the next help database from the given binary reader.
+        /// Deserializes the next help database from a binary reader.
         /// </summary>
         /// <remarks>
         /// This method throws an exception if it encounters an irrecoverable
-        /// error in the input, which may be an IO error or format error in
-        /// the meta data. It raises an <c>InvalidTopicData</c> event for
-        /// each format error it encounters during topic deserialization.
+        /// error in the input, such as an IO error or malformed input in the
+        /// meta data. It raises an <c>InvalidTopicData</c> event for each
+        /// format error it encounters during topic deserialization.
         /// </remarks>
-        public HelpDatabase Deserialize(BinaryReader reader)
+        public HelpDatabase DeserializeDatabase(BinaryReader reader)
         {
-            HelpFile metaData = ReadMetaData(reader);
+            BinaryHelpMetaData metaData = ReadMetaData(reader);
             HelpDatabase database = CreateDatabase(reader, metaData);
             return database;
         }
 
-        private static HelpFile ReadMetaData(BinaryReader reader)
+        private static BinaryHelpMetaData ReadMetaData(BinaryReader reader)
         {
-            HelpFile file = new HelpFile();
-            ReadHeader(reader, file);
+            BinaryHelpMetaData file = new BinaryHelpMetaData();
+            ReadFileHeader(reader, file);
             ReadTopicOffsets(reader, file);
             ReadContextStrings(reader, file);
             ReadContextMapping(reader, file);
@@ -71,7 +63,7 @@ namespace QuickHelp.Serialization
         }
 
         // Create a help database and initialize its structure.
-        private HelpDatabase CreateDatabase(BinaryReader reader, HelpFile file)
+        private HelpDatabase CreateDatabase(BinaryReader reader, BinaryHelpMetaData file)
         {
             bool isCaseSensitive = (file.Header.Attributes & HelpFileAttributes.CaseSensitive) != 0;
             HelpDatabase database = new HelpDatabase(file.Header.DatabaseName, isCaseSensitive);
@@ -129,9 +121,9 @@ namespace QuickHelp.Serialization
             return database;
         }
 
-        private static void ReadHeader(BinaryReader reader, HelpFile file)
+        private static void ReadFileHeader(BinaryReader reader, BinaryHelpMetaData file)
         {
-            HelpFileHeader header = new HelpFileHeader();
+            BinaryHelpFileHeader header = new BinaryHelpFileHeader();
             header.Signature = reader.ReadUInt16();
             header.Unknown1 = reader.ReadUInt16();
             header.Attributes = (HelpFileAttributes)reader.ReadUInt16();
@@ -167,7 +159,7 @@ namespace QuickHelp.Serialization
             file.Header = header;
         }
 
-        private static void ReadTopicOffsets(BinaryReader reader, HelpFile file)
+        private static void ReadTopicOffsets(BinaryReader reader, BinaryHelpMetaData file)
         {
             if (file.Header.TopicOffsetsOffset != 0x46) // header size
                 throw new InvalidDataException("Invalid TopicOffsetsOffset.");
@@ -179,7 +171,7 @@ namespace QuickHelp.Serialization
             }
         }
 
-        private static void ReadContextStrings(BinaryReader reader, HelpFile file)
+        private static void ReadContextStrings(BinaryReader reader, BinaryHelpMetaData file)
         {
             if (file.Header.ContextStringsOffset - file.Header.TopicOffsetsOffset
                 != 4 * (file.Header.TopicCount + 1))
@@ -191,7 +183,7 @@ namespace QuickHelp.Serialization
             file.ContextStrings = all.Split('\0');
         }
 
-        private static void ReadContextMapping(BinaryReader reader, HelpFile file)
+        private static void ReadContextMapping(BinaryReader reader, BinaryHelpMetaData file)
         {
             file.ContextMapping = new UInt16[file.Header.ContextCount];
             for (int i = 0; i < file.ContextMapping.Length; i++)
@@ -200,7 +192,7 @@ namespace QuickHelp.Serialization
             }
         }
 
-        private static void ReadDictionary(BinaryReader reader, HelpFile file)
+        private static void ReadDictionary(BinaryReader reader, BinaryHelpMetaData file)
         {
             if (file.Header.DictionaryOffset !=
                 file.Header.ContextMappingOffset + 2 * file.ContextMapping.Length)
@@ -224,7 +216,7 @@ namespace QuickHelp.Serialization
             file.Dictionary = entries.ToArray();
         }
 
-        private static void ReadHuffmanTree(BinaryReader reader, HelpFile file)
+        private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file)
         {
             int huffmanTreeSize = file.Header.TopicDataOffset -
                                   file.Header.HuffmanTreeOffset;
@@ -243,7 +235,7 @@ namespace QuickHelp.Serialization
         private static readonly Graphic437Encoding Graphic437 =
             new Graphic437Encoding();
 
-        private byte[] DecompressTopicData(byte[] input, HelpTopic topic, HelpFile file)
+        private byte[] DecompressTopicData(byte[] input, HelpTopic topic, BinaryHelpMetaData file)
         {
             // The first two bytes indicates decompressed data size.
             if (input.Length < 2)
@@ -500,32 +492,4 @@ namespace QuickHelp.Serialization
             get { return message; }
         }
     }
-
-    //public class HelpDecoderException : Exception
-    //{
-    //    readonly List<Exception> errors = new List<Exception>();
-    //
-    //    public HelpDecoderException(Exception nestedException)
-    //    {
-    //        this.errors.Add(nestedException);
-    //    }
-    //
-    //    public List<Exception> Errors
-    //    {
-    //        get { return errors; }
-    //    }
-    //}
-
-    //static class BinaryReaderExtensions
-    //{
-    //    public static string ReadNullTerminatedString(BinaryReader reader)
-    //    {
-    //        StringBuilder sb = new StringBuilder(16);
-    //        for (char c; (c = reader.ReadChar()) != '\0'; )
-    //        {
-    //            sb.Append(c);
-    //        }
-    //        return sb.ToString();
-    //    }
-    //}
 }
