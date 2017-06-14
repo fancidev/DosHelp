@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using QuickHelp;
+using QuickHelp.Serialization;
 
 namespace HelpBrowser
 {
@@ -57,6 +58,7 @@ namespace HelpBrowser
 
             lstTopics.Items.Clear();
             lstContexts.Items.Clear();
+            lstErrors.Items.Clear();
 
             if (viewModel.ActiveDatabase == null)
                 return;
@@ -74,6 +76,16 @@ namespace HelpBrowser
             foreach (string contextString in viewModel.ActiveDatabase.ContextStrings)
             {
                 lstContexts.Items.Add(contextString);
+            }
+
+            foreach (InvalidTopicDataEventArgs error in viewModel.DeserializationErrors)
+            {
+                if (error.Topic.Database == viewModel.ActiveDatabase)
+                {
+                    lstErrors.Items.Add(string.Format("[{0}: {1}] {2}",
+                        error.Topic.TopicIndex, error.Topic.Title, 
+                        error.Message));
+                }
             }
         }
 
@@ -327,7 +339,7 @@ namespace HelpBrowser
                 throw new ArgumentNullException("fileName");
 
             var decoder = new QuickHelp.Serialization.BinaryHelpDeserializer();
-            decoder.InvalidTopicData += decoder_TopicDecodingError;
+            decoder.InvalidTopicData += OnInvalidTopicData;
 
             using (FileStream stream = File.OpenRead(fileName))
             using (BinaryReader reader = new BinaryReader(stream))
@@ -352,9 +364,17 @@ namespace HelpBrowser
             get { return topicsWithError; }
         }
 
-        private void decoder_TopicDecodingError(object sender, QuickHelp.Serialization.InvalidTopicDataEventArgs e)
+        private List<InvalidTopicDataEventArgs> deserializationErrors =
+            new List<InvalidTopicDataEventArgs>();
+
+        public List<InvalidTopicDataEventArgs> DeserializationErrors
         {
-            topicsWithError.Add(e.Topic);
+            get { return this.deserializationErrors; }
+        }
+
+        private void OnInvalidTopicData(object sender, QuickHelp.Serialization.InvalidTopicDataEventArgs e)
+        {
+            this.deserializationErrors.Add(e);
         }
 
         public event EventHandler DatabaseAdded;
