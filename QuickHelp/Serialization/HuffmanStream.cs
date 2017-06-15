@@ -24,14 +24,7 @@ namespace QuickHelp.Serialization
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            for (int i = 0; i < count; i++)
-            {
-                int b = this.ReadByte();
-                if (b < 0)
-                    return i;
-                buffer[offset + i] = (byte)b;
-            }
-            return count;
+            return StreamExtensions.ReadBytes(this, buffer, offset, count);
         }
 
         public override int ReadByte()

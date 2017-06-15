@@ -50,6 +50,7 @@
     <Compile Include="Serialization\HelpCommand.cs" />
     <Compile Include="Serialization\HelpFile.cs" />
     <Compile Include="Serialization\HuffmanStream.cs" />
+    <Compile Include="Serialization\StreamExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Serialization\Format.txt" />

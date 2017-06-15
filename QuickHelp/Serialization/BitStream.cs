@@ -69,23 +69,7 @@ namespace QuickHelp.Serialization
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
-            if (offset < 0 || offset > buffer.Length)
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            if (count < 0 || count > buffer.Length - offset)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            int n;
-            for (n = 0; n < count; n++)
-            {
-                int value = ReadByte();
-                if (value == 0 || value == 1)
-                    buffer[offset + n] = (byte)value;
-                else
-                    break;
-            }
-            return n;
+            return StreamExtensions.ReadBytes(this, buffer, offset, count);
         }
 
         /// <summary>
@@ -133,17 +117,7 @@ namespace QuickHelp.Serialization
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
-            if (offset < 0 || offset > buffer.Length)
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            if (count < 0 || count > buffer.Length - offset)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            for (int n = 0; n < count; n++)
-            {
-                WriteByte(buffer[offset + n]);
-            }
+            StreamExtensions.WriteBytes(this, buffer, offset, count);
         }
 
         public override void WriteByte(byte value)
