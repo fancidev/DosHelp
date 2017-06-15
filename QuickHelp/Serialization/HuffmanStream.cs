@@ -43,7 +43,7 @@ namespace QuickHelp.Serialization
                 if (node.IsLeaf)
                     return node.Symbol;
 
-                int bit = bitStream.ReadBit();
+                int bit = bitStream.ReadByte();
                 if (bit < 0) // EOF
                     return -1;
                 
