@@ -33,15 +33,16 @@
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.txtSource = new System.Windows.Forms.TextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.cbDatabases = new System.Windows.Forms.ComboBox();
-            this.btnAddArchive = new System.Windows.Forms.Button();
-            this.btnRemoveArchive = new System.Windows.Forms.Button();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabTopics = new System.Windows.Forms.TabPage();
             this.tabContexts = new System.Windows.Forms.TabPage();
             this.lstContexts = new System.Windows.Forms.ListBox();
             this.tabErrors = new System.Windows.Forms.TabPage();
+            this.lstErrors = new System.Windows.Forms.ListBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.cbDatabases = new System.Windows.Forms.ComboBox();
+            this.btnAddArchive = new System.Windows.Forms.Button();
+            this.btnRemoveArchive = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabHtml = new System.Windows.Forms.TabPage();
             this.txtTopicTitle = new System.Windows.Forms.TextBox();
@@ -58,15 +59,14 @@
             this.mnuViewErrors = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.lstErrors = new System.Windows.Forms.ListBox();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabTopics.SuspendLayout();
             this.tabContexts.SuspendLayout();
             this.tabErrors.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabHtml.SuspendLayout();
             this.tabText.SuspendLayout();
@@ -128,6 +128,73 @@
             this.splitContainer1.SplitterDistance = 241;
             this.splitContainer1.TabIndex = 4;
             // 
+            // tabControl2
+            // 
+            this.tabControl2.Controls.Add(this.tabTopics);
+            this.tabControl2.Controls.Add(this.tabContexts);
+            this.tabControl2.Controls.Add(this.tabErrors);
+            this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl2.Location = new System.Drawing.Point(0, 23);
+            this.tabControl2.Multiline = true;
+            this.tabControl2.Name = "tabControl2";
+            this.tabControl2.SelectedIndex = 0;
+            this.tabControl2.Size = new System.Drawing.Size(241, 327);
+            this.tabControl2.TabIndex = 1;
+            // 
+            // tabTopics
+            // 
+            this.tabTopics.Controls.Add(this.lstTopics);
+            this.tabTopics.Location = new System.Drawing.Point(4, 24);
+            this.tabTopics.Name = "tabTopics";
+            this.tabTopics.Padding = new System.Windows.Forms.Padding(3);
+            this.tabTopics.Size = new System.Drawing.Size(233, 299);
+            this.tabTopics.TabIndex = 0;
+            this.tabTopics.Text = "Topics";
+            this.tabTopics.UseVisualStyleBackColor = true;
+            // 
+            // tabContexts
+            // 
+            this.tabContexts.Controls.Add(this.lstContexts);
+            this.tabContexts.Location = new System.Drawing.Point(4, 22);
+            this.tabContexts.Name = "tabContexts";
+            this.tabContexts.Padding = new System.Windows.Forms.Padding(3);
+            this.tabContexts.Size = new System.Drawing.Size(233, 303);
+            this.tabContexts.TabIndex = 1;
+            this.tabContexts.Text = "Contexts";
+            this.tabContexts.UseVisualStyleBackColor = true;
+            // 
+            // lstContexts
+            // 
+            this.lstContexts.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lstContexts.FormattingEnabled = true;
+            this.lstContexts.ItemHeight = 15;
+            this.lstContexts.Location = new System.Drawing.Point(3, 3);
+            this.lstContexts.Name = "lstContexts";
+            this.lstContexts.Size = new System.Drawing.Size(227, 297);
+            this.lstContexts.TabIndex = 0;
+            this.lstContexts.SelectedIndexChanged += new System.EventHandler(this.lstContexts_SelectedIndexChanged);
+            // 
+            // tabErrors
+            // 
+            this.tabErrors.Controls.Add(this.lstErrors);
+            this.tabErrors.Location = new System.Drawing.Point(4, 24);
+            this.tabErrors.Name = "tabErrors";
+            this.tabErrors.Size = new System.Drawing.Size(233, 299);
+            this.tabErrors.TabIndex = 2;
+            this.tabErrors.Text = "Errors";
+            this.tabErrors.UseVisualStyleBackColor = true;
+            // 
+            // lstErrors
+            // 
+            this.lstErrors.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lstErrors.FormattingEnabled = true;
+            this.lstErrors.ItemHeight = 15;
+            this.lstErrors.Location = new System.Drawing.Point(0, 0);
+            this.lstErrors.Name = "lstErrors";
+            this.lstErrors.Size = new System.Drawing.Size(233, 299);
+            this.lstErrors.TabIndex = 0;
+            this.lstErrors.SelectedIndexChanged += new System.EventHandler(this.lstErrors_SelectedIndexChanged);
+            // 
             // panel1
             // 
             this.panel1.AutoSize = true;
@@ -172,62 +239,6 @@
             this.btnRemoveArchive.Text = "-";
             this.btnRemoveArchive.UseVisualStyleBackColor = true;
             this.btnRemoveArchive.Click += new System.EventHandler(this.btnRemoveArchive_Click);
-            // 
-            // tabControl2
-            // 
-            this.tabControl2.Controls.Add(this.tabTopics);
-            this.tabControl2.Controls.Add(this.tabContexts);
-            this.tabControl2.Controls.Add(this.tabErrors);
-            this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl2.Location = new System.Drawing.Point(0, 23);
-            this.tabControl2.Multiline = true;
-            this.tabControl2.Name = "tabControl2";
-            this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(241, 327);
-            this.tabControl2.TabIndex = 1;
-            // 
-            // tabTopics
-            // 
-            this.tabTopics.Controls.Add(this.lstTopics);
-            this.tabTopics.Location = new System.Drawing.Point(4, 24);
-            this.tabTopics.Name = "tabTopics";
-            this.tabTopics.Padding = new System.Windows.Forms.Padding(3);
-            this.tabTopics.Size = new System.Drawing.Size(233, 299);
-            this.tabTopics.TabIndex = 0;
-            this.tabTopics.Text = "Topics";
-            this.tabTopics.UseVisualStyleBackColor = true;
-            // 
-            // tabContexts
-            // 
-            this.tabContexts.Controls.Add(this.lstContexts);
-            this.tabContexts.Location = new System.Drawing.Point(4, 22);
-            this.tabContexts.Name = "tabContexts";
-            this.tabContexts.Padding = new System.Windows.Forms.Padding(3);
-            this.tabContexts.Size = new System.Drawing.Size(233, 324);
-            this.tabContexts.TabIndex = 1;
-            this.tabContexts.Text = "Contexts";
-            this.tabContexts.UseVisualStyleBackColor = true;
-            // 
-            // lstContexts
-            // 
-            this.lstContexts.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lstContexts.FormattingEnabled = true;
-            this.lstContexts.ItemHeight = 15;
-            this.lstContexts.Location = new System.Drawing.Point(3, 3);
-            this.lstContexts.Name = "lstContexts";
-            this.lstContexts.Size = new System.Drawing.Size(227, 318);
-            this.lstContexts.TabIndex = 0;
-            this.lstContexts.SelectedIndexChanged += new System.EventHandler(this.lstContexts_SelectedIndexChanged);
-            // 
-            // tabErrors
-            // 
-            this.tabErrors.Controls.Add(this.lstErrors);
-            this.tabErrors.Location = new System.Drawing.Point(4, 24);
-            this.tabErrors.Name = "tabErrors";
-            this.tabErrors.Size = new System.Drawing.Size(233, 299);
-            this.tabErrors.TabIndex = 2;
-            this.tabErrors.Text = "Errors";
-            this.tabErrors.UseVisualStyleBackColor = true;
             // 
             // tabControl1
             // 
@@ -374,16 +385,6 @@
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             // 
-            // lstErrors
-            // 
-            this.lstErrors.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lstErrors.FormattingEnabled = true;
-            this.lstErrors.ItemHeight = 15;
-            this.lstErrors.Location = new System.Drawing.Point(0, 0);
-            this.lstErrors.Name = "lstErrors";
-            this.lstErrors.Size = new System.Drawing.Size(233, 299);
-            this.lstErrors.TabIndex = 0;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -403,11 +404,11 @@
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabTopics.ResumeLayout(false);
             this.tabContexts.ResumeLayout(false);
             this.tabErrors.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabHtml.ResumeLayout(false);
             this.tabHtml.PerformLayout();

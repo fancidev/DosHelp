@@ -82,9 +82,7 @@ namespace HelpBrowser
             {
                 if (error.Topic.Database == viewModel.ActiveDatabase)
                 {
-                    lstErrors.Items.Add(string.Format("[{0}: {1}] {2}",
-                        error.Topic.TopicIndex, error.Topic.Title, 
-                        error.Message));
+                    lstErrors.Items.Add(new HelpTopicErrorViewItem(error));
                 }
             }
         }
@@ -118,7 +116,7 @@ namespace HelpBrowser
             else
                 txtSource.Text = "";
         }
-        
+
         private void lstTopics_SelectedIndexChanged(object sender, EventArgs e)
         {
             HelpTopicViewItem item = lstTopics.SelectedItem as HelpTopicViewItem;
@@ -134,7 +132,7 @@ namespace HelpBrowser
             StringBuilder sbText = new StringBuilder(8);
             StringBuilder sb = new StringBuilder();
             sb.Append("        0  1  2  3  4  5  6  7   8  9  A  B  C  D  E  F");
-            
+
             for (int i = 0; i < data.Length; i++)
             {
                 if (i % 16 == 0)
@@ -262,6 +260,16 @@ namespace HelpBrowser
         private void RecoverTopicError(HelpTopic topic)
         {
 
+        }
+
+        private void lstErrors_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            HelpTopicErrorViewItem item = lstErrors.SelectedItem as HelpTopicErrorViewItem;
+            if (item == null)
+                return;
+
+            HelpTopic topic = item.Topic;
+            viewModel.ActiveTopic = topic;
         }
     }
 
@@ -545,6 +553,28 @@ namespace HelpBrowser
             //return string.Format("[{0:000}] {1}", topicIndex, topic);
             return "(Untitled Topic)";
         }
-
     }
+
+    class HelpTopicErrorViewItem
+    {
+        readonly InvalidTopicDataEventArgs m_error;
+
+        public HelpTopicErrorViewItem(InvalidTopicDataEventArgs error)
+        {
+            m_error = error;
+        }
+
+        public HelpTopic Topic
+        {
+            get { return m_error.Topic; }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0}: {1}] {2}",
+                m_error.Topic.TopicIndex, m_error.Topic.Title,
+                m_error.Message);
+        }
+    }
+
 }
