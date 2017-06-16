@@ -27,7 +27,6 @@ namespace QuickHelp.Serialization
                 while (stream.Position < stream.Length)
                 {
                     HelpDatabase database = DeserializeDatabase(reader);
-                    database.FileName = fileName;
                     yield return database;
                 }
             }

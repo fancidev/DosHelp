@@ -276,6 +276,8 @@ namespace HelpBrowser
     class HelpViewModel
     {
         readonly HelpSystem system = new HelpSystem();
+        readonly Dictionary<HelpDatabase, string> databaseFileNames =
+            new Dictionary<HelpDatabase, string>();
 
         private HelpDatabase activeDatabase;
         private HelpTopic activeTopic;
@@ -295,12 +297,12 @@ namespace HelpBrowser
 
         public void SaveSettings()
         {
-            var fileNames = new SortedDictionary<string, bool>(
+            var fileNames = new SortedDictionary<string, string>(
                 StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (HelpDatabase database in system.Databases)
+            foreach (string fileName in databaseFileNames.Values)
             {
-                fileNames[database.FileName] = true;
+                fileNames[fileName] = fileName;
             }
 
             var savedNames = new System.Collections.Specialized.StringCollection();
@@ -316,12 +318,13 @@ namespace HelpBrowser
             get { return system.Databases; }
         }
 
-        public void AddDatabase(HelpDatabase database)
+        public void AddDatabase(HelpDatabase database, string fileName)
         {
             if (database == null)
-                throw new ArgumentNullException("database");
+                throw new ArgumentNullException(nameof(database));
 
             system.Databases.Add(database);
+            databaseFileNames[database] = fileName;
             if (DatabaseAdded != null)
                 DatabaseAdded(this, null);
             if (this.ActiveDatabase == null)
@@ -331,11 +334,12 @@ namespace HelpBrowser
         public void RemoveDatabase(HelpDatabase database)
         {
             if (database == null)
-                throw new ArgumentNullException("database");
+                throw new ArgumentNullException(nameof(database));
 
             if (database == this.ActiveDatabase)
                 this.ActiveDatabase = null;
 
+            databaseFileNames.Remove(database);
             system.Databases.Remove(database);
             if (DatabaseRemoved != null)
                 DatabaseRemoved(this, null);
@@ -355,11 +359,9 @@ namespace HelpBrowser
                 while (stream.Position < stream.Length)
                 {
                     HelpDatabase database = decoder.DeserializeDatabase(reader);
-                    database.FileName = fileName;
-
                     if (system.FindDatabase(database.Name) == null)
                     {
-                        AddDatabase(database);
+                        AddDatabase(database, fileName);
                     }
                 }
             }

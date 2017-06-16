@@ -57,14 +57,6 @@ namespace QuickHelp
         }
 
         /// <summary>
-        /// Gets or sets the file name from which this help database is loaded.
-        /// Because multiple help databases may be stored in a single physical
-        /// file, the file name is not used in context resolution.
-        /// </summary>
-        /// TODO: remove this attribute because it is not appropriate.
-        public string FileName { get; set; }
-
-        /// <summary>
         /// Gets or sets a flag that indicates whether context strings are
         /// case-sensitive when resolving links.
         /// </summary>
