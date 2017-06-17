@@ -61,7 +61,12 @@ namespace HelpBrowser
             lstErrors.Items.Clear();
 
             if (viewModel.ActiveDatabase == null)
+            {
+                tabTopics.Text = "Topics";
+                tabContexts.Text = "Contexts";
+                tabErrors.Text = "Errors";
                 return;
+            }
 
             lstTopics.Visible = false;
             int topicIndex = 0;
@@ -72,11 +77,13 @@ namespace HelpBrowser
                 topicIndex++;
             }
             lstTopics.Visible = true;
+            tabTopics.Text = string.Format("Topics ({0})", lstTopics.Items.Count);
 
             foreach (string contextString in viewModel.ActiveDatabase.ContextStrings)
             {
                 lstContexts.Items.Add(contextString);
             }
+            tabContexts.Text = string.Format("Contexts ({0})", lstContexts.Items.Count);
 
             foreach (InvalidTopicDataEventArgs error in viewModel.DeserializationErrors)
             {
@@ -85,6 +92,7 @@ namespace HelpBrowser
                     lstErrors.Items.Add(new HelpTopicErrorViewItem(error));
                 }
             }
+            tabErrors.Text = string.Format("Errors ({0})", lstErrors.Items.Count);
         }
 
         private void OnActiveTopicChanged(object sender, EventArgs e)
