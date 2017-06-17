@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.lstTopics = new System.Windows.Forms.ListBox();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.txtSource = new System.Windows.Forms.TextBox();
@@ -177,9 +178,9 @@
             // tabErrors
             // 
             this.tabErrors.Controls.Add(this.lstErrors);
-            this.tabErrors.Location = new System.Drawing.Point(4, 24);
+            this.tabErrors.Location = new System.Drawing.Point(4, 22);
             this.tabErrors.Name = "tabErrors";
-            this.tabErrors.Size = new System.Drawing.Size(233, 299);
+            this.tabErrors.Size = new System.Drawing.Size(233, 303);
             this.tabErrors.TabIndex = 2;
             this.tabErrors.Text = "Errors";
             this.tabErrors.UseVisualStyleBackColor = true;
@@ -191,7 +192,7 @@
             this.lstErrors.ItemHeight = 15;
             this.lstErrors.Location = new System.Drawing.Point(0, 0);
             this.lstErrors.Name = "lstErrors";
-            this.lstErrors.Size = new System.Drawing.Size(233, 299);
+            this.lstErrors.Size = new System.Drawing.Size(233, 303);
             this.lstErrors.TabIndex = 0;
             this.lstErrors.SelectedIndexChanged += new System.EventHandler(this.lstErrors_SelectedIndexChanged);
             // 
@@ -393,6 +394,7 @@
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip1);
             this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "MainForm";
