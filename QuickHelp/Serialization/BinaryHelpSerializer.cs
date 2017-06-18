@@ -287,9 +287,19 @@ namespace QuickHelp.Serialization
                     throw;
                 }
 
-                // TODO: handle control character override.
-                bool isCommand = HelpCommandConverter.ProcessColonCommand(
-                    line.Text, controlCharacter, topic);
+                bool isCommand = true;
+                try
+                {
+                    isCommand = HelpCommandConverter.ProcessCommand(
+                        line.Text, controlCharacter, topic);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format(
+                        "Unable to process command '{0}': {1}",
+                        line.Text, ex.Message));
+                }
+
                 if (!isCommand)
                 {
                     topic.Lines.Add(line);

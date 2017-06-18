@@ -12,6 +12,9 @@ namespace QuickHelp.Serialization
     /// </remarks>
     enum HelpCommand
     {
+        /// <summary>
+        /// Special value that indicates the absence of a command.
+        /// </summary>
         None = 0,
 
         /// <summary>
@@ -207,35 +210,37 @@ namespace QuickHelp.Serialization
         }
     }
 
+    // TODO: rename Converter to something else
     static class HelpCommandConverter
     {
         /// <summary>
-        /// Processes a colon command associated with a given topic.
+        /// Parses a line for a command and executes the command if present.
         /// </summary>
         /// <returns>
-        /// <c>true</c> if the command is successfully processed; <c>false</c>
-        /// if the command is not supported or if the syntax is invalid.
+        /// <c>true</c> if the line represents a command and is executed;
+        /// <c>false</c> if the line does not represent a command. Throws an
+        /// exception if the line represents an unknown or invalid command.
         /// </returns>
-        public static bool ProcessColonCommand(
-            string commandString, char controlCharacter, HelpTopic topic)
+        public static bool ProcessCommand(
+            string line, char controlCharacter, HelpTopic topic)
         {
+            HelpCommand command;
             string parameter;
-            HelpCommand command = ParseColonCommand(
-                commandString, controlCharacter, out parameter);
-            if (command == HelpCommand.None)
+            if (!ParseCommand(line, controlCharacter, out command, out parameter))
                 return false;
 
-            return ProcessColonCommand(command, parameter, topic);
+            ExecuteCommand(command, parameter, topic);
+            return true;
         }
 
         /// <summary>
-        /// Processes a colon command associated with a given topic.
+        /// Processes a command within the given topic.
         /// </summary>
         /// <returns>
         /// <c>true</c> if the command is successfully processed; <c>false</c>
         /// if the command is not supported or if the syntax is invalid.
         /// </returns>
-        public static bool ProcessColonCommand(
+        private static void ExecuteCommand(
             HelpCommand command, string parameter, HelpTopic topic)
         {
             switch (command)
@@ -262,23 +267,11 @@ namespace QuickHelp.Serialization
                     break;
 
                 case HelpCommand.Freeze:
-                    {
-                        int n;
-                        if (Int32.TryParse(parameter, out n))
-                            topic.FreezeHeight = n;
-                        else
-                            return false;
-                    }
+                    topic.FreezeHeight = Int32.Parse(parameter);
                     break;
 
                 case HelpCommand.Length:
-                    {
-                        int n;
-                        if (Int32.TryParse(parameter, out n))
-                            topic.WindowHeight = n;
-                        else
-                            return false;
-                    }
+                    topic.WindowHeight = Int32.Parse(parameter);
                     break;
 
                 case HelpCommand.List:
@@ -342,53 +335,55 @@ namespace QuickHelp.Serialization
                     break;
 
                 default:
-                    return false;
+                    throw new NotImplementedException();
             }
+        }
+
+        private static bool ParseCommand(
+            string line, char controlCharacter,
+            out HelpCommand command, out string parameters)
+        {
+            command = HelpCommand.None;
+            parameters = "";
+
+            if (string.IsNullOrEmpty(line))
+                return false;
+            else if (line[0] == '.')
+                return ParseDotCommand(line, out command, out parameters);
+            else if (line[0] == controlCharacter)
+                return ParseColonCommand(line, controlCharacter, out command, out parameters);
+            else
+                return false;
+        }
+
+        private static bool ParseColonCommand(
+            string line, char controlCharacter,
+            out HelpCommand command, out string parameters)
+        {
+            command = HelpCommand.None;
+            parameters = "";
+
+            if (string.IsNullOrEmpty(line) || line[0] != controlCharacter)
+                return false;
+
+            if (line.Length < 2)
+                throw new ArgumentException("Colon command must not be blank.");
+
+            if (!ColonCommandToHelpCommandMapping.TryGetValue(line[1], out command))
+                throw new ArgumentException("Colon command is not recognized.");
+
+            parameters = line.Substring(2);
             return true;
         }
 
-        public static HelpCommand ParseCommand(
-            string line, char controlCharacter, out string parameters)
+        private static bool ParseDotCommand(
+            string line, out HelpCommand command, out string parameters)
         {
+            command = HelpCommand.None;
             parameters = "";
 
-            if (line == null || line.Length < 2)
-                return HelpCommand.None;
-
-            if (line[0] == '.')
-                return ParseDotCommand(line, out parameters);
-            else if (line[0] == controlCharacter)
-                return ParseColonCommand(line, controlCharacter, out parameters);
-            else
-                return HelpCommand.None;
-        }
-
-        public static HelpCommand ParseColonCommand(
-            string line, char controlCharacter, out string parameters)
-        {
-            parameters = "";
-
-            if (line == null || line.Length < 2 || line[0] != controlCharacter)
-                return HelpCommand.None;
-
-            HelpCommand command;
-            if (ColonCommandToHelpCommandMapping.TryGetValue(line[1], out command))
-            {
-                parameters = line.Substring(2);
-                return command;
-            }
-            else
-            {
-                return HelpCommand.None;
-            }
-        }
-
-        public static HelpCommand ParseDotCommand(string line, out string parameters)
-        {
-            parameters = "";
-
-            if (line == null || line.Length < 2 || line[0] != '.')
-                return HelpCommand.None;
+            if (string.IsNullOrEmpty(line) || line[0] != '.')
+                return false;
 
             string dotCommand;
             int k = line.IndexOf(' ');
@@ -406,7 +401,8 @@ namespace QuickHelp.Serialization
             char colonCommand;
             if (DotCommandToColonCommandMapping.TryGetValue(dotCommand, out colonCommand))
             {
-                return ColonCommandToHelpCommandMapping[colonCommand];
+                command = ColonCommandToHelpCommandMapping[colonCommand];
+                return true;
             }
 
             // Process source-only dot commands that do not have an equivalent
@@ -415,14 +411,18 @@ namespace QuickHelp.Serialization
             {
                 case "comment":
                 case ".":
-                    return HelpCommand.Comment;
+                    command = HelpCommand.Comment;
+                    break;
                 case "context":
-                    return HelpCommand.Context;
+                    command = HelpCommand.Context;
+                    break;
                 case "source":
-                    return HelpCommand.Source;
+                    command = HelpCommand.Source;
+                    break;
                 default:
-                    return HelpCommand.None;
+                    throw new ArgumentException("Dot command is not recognized.");
             }
+            return true;
         }
 
         private static readonly Dictionary<string, char>
