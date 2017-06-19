@@ -160,6 +160,11 @@ namespace QuickHelp
             }
         }
 
+        public string Target
+        {
+            get { return target; }
+        }
+
         public override string ToString()
         {
             return target;

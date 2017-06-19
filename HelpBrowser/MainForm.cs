@@ -286,6 +286,7 @@ namespace HelpBrowser
         readonly HelpSystem system = new HelpSystem();
         readonly Dictionary<HelpDatabase, string> databaseFileNames =
             new Dictionary<HelpDatabase, string>();
+        readonly List<HelpTopic> history = new List<HelpTopic>();
 
         private HelpDatabase activeDatabase;
         private HelpTopic activeTopic;
@@ -344,6 +345,12 @@ namespace HelpBrowser
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
+            for (int i = history.Count - 1; i >= 0; i--)
+            {
+                if (history[i].Database == database)
+                    history.RemoveAt(i);
+            }
+
             if (database == this.ActiveDatabase)
                 this.ActiveDatabase = null;
 
@@ -356,7 +363,7 @@ namespace HelpBrowser
         public void LoadDatabases(string fileName)
         {
             if (fileName == null)
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
 
             var decoder = new QuickHelp.Serialization.BinaryHelpDeserializer();
             decoder.InvalidTopicData += OnInvalidTopicData;
@@ -366,7 +373,19 @@ namespace HelpBrowser
             {
                 while (stream.Position < stream.Length)
                 {
-                    HelpDatabase database = decoder.DeserializeDatabase(reader);
+                    long startPosition = stream.Position;
+                    HelpDatabase database;
+                    try
+                    {
+                        database = decoder.DeserializeDatabase(reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(string.Format(
+                            "Cannot decode database file {0} @ {1}: {2}",
+                            fileName, startPosition, ex.Message));
+                        break;
+                    }
                     if (system.FindDatabase(database.Name) == null)
                     {
                         AddDatabase(database, fileName);
@@ -426,6 +445,8 @@ namespace HelpBrowser
                     return;
 
                 this.activeTopic = value;
+                if (history.Count == 0 || history[history.Count - 1] != value)
+                    history.Add(value);
                 if (activeTopic != null)
                     this.ActiveDatabase = activeTopic.Database;
                 if (ActiveTopicChanged != null)
@@ -439,6 +460,20 @@ namespace HelpBrowser
 
         public bool NavigateTo(HelpUri uri)
         {
+            if (uri.Type == HelpUriType.Command)
+            {
+                if (uri.Target == "!B")
+                {
+                    if (history.Count >= 2)
+                    {
+                        history.RemoveAt(history.Count - 1);
+                        ActiveTopic = history[history.Count - 1];
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             HelpTopic topic = system.ResolveUri(activeDatabase, uri);
             if (topic != null)
             {
