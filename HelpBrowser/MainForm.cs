@@ -333,7 +333,7 @@ namespace HelpBrowser
                 throw new ArgumentNullException(nameof(database));
 
             system.Databases.Add(database);
-            databaseFileNames[database] = fileName;
+            databaseFileNames[database] = Path.GetFullPath(fileName).ToLowerInvariant();
             if (DatabaseAdded != null)
                 DatabaseAdded(this, null);
             if (this.ActiveDatabase == null)
@@ -445,10 +445,12 @@ namespace HelpBrowser
                     return;
 
                 this.activeTopic = value;
-                if (history.Count == 0 || history[history.Count - 1] != value)
-                    history.Add(value);
                 if (activeTopic != null)
+                {
+                    if (history.Count == 0 || history[history.Count - 1] != value)
+                        history.Add(value);
                     this.ActiveDatabase = activeTopic.Database;
+                }
                 if (ActiveTopicChanged != null)
                     ActiveTopicChanged(this, null);
             }
@@ -475,9 +477,21 @@ namespace HelpBrowser
             }
 
             HelpTopic topic = system.ResolveUri(activeDatabase, uri);
+            if (topic == null)
+            {
+                if (uri.Type == HelpUriType.GlobalContext &&
+                    system.FindDatabase(uri.DatabaseName) == null)
+                {
+                    string fileName = FindFile(activeDatabase, uri.DatabaseName);
+                    if (fileName != null)
+                    {
+                        LoadDatabases(fileName);
+                        topic = system.ResolveUri(activeDatabase, uri);
+                    }
+                }
+            }
             if (topic != null)
             {
-                // TODO: also need to change active database
                 ActiveTopic = topic;
                 return true;
             }
@@ -485,6 +499,58 @@ namespace HelpBrowser
             {
                 return false;
             }
+        }
+
+        private IEnumerable<string> GetSearchPaths(HelpDatabase referrer)
+        {
+            string path = this.databaseFileNames[referrer];
+            int maxLevels = 2;
+            for (int level = 0; level < maxLevels; level++)
+            {
+                path = Path.GetDirectoryName(path);
+                if (string.IsNullOrEmpty(path))
+                {
+                    break;
+                }
+                yield return path;
+            }
+        }
+
+        private IEnumerable<string> GetSearchPaths()
+        {
+            Dictionary<string, bool> searched = new Dictionary<string, bool>();
+            foreach (string databaseFileName in this.databaseFileNames.Values)
+            {
+                string dirPath = Path.GetDirectoryName(databaseFileName);
+                string parentPath = Path.GetDirectoryName(dirPath);
+                if (!string.IsNullOrEmpty(parentPath) &&
+                    !searched.ContainsKey(parentPath.ToLowerInvariant()))
+                {
+                    searched[parentPath.ToLowerInvariant()] = true;
+                    yield return parentPath;
+                }
+            }
+        }
+
+        private string FindFile(HelpDatabase referrer, string fileName)
+        {
+            if (referrer == null)
+                throw new ArgumentNullException(nameof(referrer));
+            if (fileName == null)
+                throw new ArgumentNullException(nameof(fileName));
+
+            foreach (string searchPath in GetSearchPaths(referrer))
+            {
+                string[] fileNames = Directory.GetFiles(
+                    searchPath, fileName, SearchOption.AllDirectories);
+                foreach (string filePath in fileNames)
+                {
+                    if (!this.databaseFileNames.ContainsValue(
+                        filePath.ToLowerInvariant()))
+                        return filePath;
+                }
+            }
+            return null;
         }
 
         public static HelpTopic GetDefaultTopicOfDatabase(HelpDatabase database)
