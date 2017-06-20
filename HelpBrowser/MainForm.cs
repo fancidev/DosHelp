@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using QuickHelp;
+using QuickHelp.Formatters;
 using QuickHelp.Serialization;
 
 namespace HelpBrowser
@@ -112,8 +113,10 @@ namespace HelpBrowser
             }
 
             // ---- Right-hand side panel ----
-            string html = QuickHelp.Converters.HtmlConverter.Default.ConvertTopic(topic);
-            string text = QuickHelp.Converters.TextConverter.ConvertTopic(topic);
+            HtmlFormatter formatter = new EmbeddedHtmlFormatter();
+            formatter.FixLinks = true;
+            string html = formatter.FormatTopic(topic);
+            string text = TextFormatter.FormatTopic(topic);
             txtNoFormat.Text = text;
             webBrowser1.DocumentText = html;
             txtTopicTitle.Text = HelpTopicViewItem.GetTopicDisplayTitle(topic);

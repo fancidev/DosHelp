@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Text;
 
-namespace QuickHelp.Converters
+namespace QuickHelp.Formatters
 {
     /// <summary>
-    /// Provides methods to convert help topics to plain text.
+    /// Provides methods to format a help topic as plain text.
     /// </summary>
-    public class TextConverter
+    public class TextFormatter
     {
-        public static string ConvertTopic(HelpTopic topic)
+        public static string FormatTopic(HelpTopic topic)
         {
             if (topic == null)
                 throw new ArgumentNullException(nameof(topic));

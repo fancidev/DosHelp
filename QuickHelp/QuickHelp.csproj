@@ -34,6 +34,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converters\EmbeddedHtmlFormatter.cs" />
     <Compile Include="Converters\HtmlConverter.cs" />
     <Compile Include="Converters\TextConverter.cs" />
     <Compile Include="HelpDatabase.cs" />

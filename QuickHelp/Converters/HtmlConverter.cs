@@ -1,21 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
-using System.IO;
 
-namespace QuickHelp.Converters
+namespace QuickHelp.Formatters
 {
     /// <summary>
-    /// Provides methods to render help topics as HTML.
+    /// Abstract class that provides methods to format a help topic as HTML.
     /// </summary>
-    public class HtmlConverter
+    public abstract class HtmlFormatter
     {
-        public static readonly HtmlConverter Default = new HtmlConverter
-        {
-            FixLinks = true,
-        };
-
         /// <summary>
         /// Gets or sets a flag that controls whether to fix links in the
         /// output.
@@ -27,9 +20,9 @@ namespace QuickHelp.Converters
         public bool FixLinks { get; set; }
 
         /// <summary>
-        /// Renders the given help topic as HTML and returns the HTML source.
+        /// Formats the given help topic as HTML and returns the HTML source.
         /// </summary>
-        public string ConvertTopic(HelpTopic topic)
+        public string FormatTopic(HelpTopic topic)
         {
             if (topic == null)
                 throw new ArgumentNullException(nameof(topic));
@@ -58,7 +51,7 @@ namespace QuickHelp.Converters
         }
 
         /// <summary>
-        /// Renders a help line as HTML and returns the HTML source.
+        /// Formats a help line as HTML and returns the HTML source.
         /// </summary>
         /// <remarks>
         /// This method produces properly structured HTML. That is, it avoids
@@ -108,7 +101,7 @@ namespace QuickHelp.Converters
             HelpUri link = line.Attributes[startIndex].Link;
             if (link != null)
             {
-                html.AppendFormat("<a href=\"{0}\">", ConvertUri(topic, link));
+                html.AppendFormat("<a href=\"{0}\">", FormatUri(topic, link));
             }
 
             Stack<TextStyle> openTags = new Stack<TextStyle>();
@@ -167,10 +160,10 @@ namespace QuickHelp.Converters
             return index;
         }
 
-        protected virtual string ConvertUri(HelpTopic topic, HelpUri uri)
-        {
-            return "?" + Escape(uri.ToString());
-        }
+        /// <summary>
+        /// Formats the given help uri for the HTML href attribute.
+        /// </summary>
+        protected abstract string FormatUri(HelpTopic topic, HelpUri uri);
 
         private static void FormatRemovedStyles(
             StringBuilder html, TextStyle change)
@@ -183,22 +176,13 @@ namespace QuickHelp.Converters
                 html.Append("</u>");
         }
 
+        /// <summary>
+        /// Gets an HTML fragment to be inserted into the head section of the
+        /// HTML output. The default implementation returns an empty string.
+        /// </summary>
         protected virtual string GetStyleSheet()
         {
-            return string.Format("    <style>\n{0}\n    </style>\n", s_styleSheet);
-        }
-
-        private static string s_styleSheet = LoadStyleSheet();
-
-        private static string LoadStyleSheet()
-        {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string resourceName = "QuickHelp.Converters.Default.css";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                return reader.ReadToEnd();
-            }
+            return "";
         }
 
         public static string Escape(string s)

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 using QuickHelp;
-using QuickHelp.Converters;
+using QuickHelp.Formatters;
 using QuickHelp.Serialization;
 
 namespace HelpConvert
@@ -27,7 +27,7 @@ namespace HelpConvert
         static void Convert(string[] fileNames, bool isDryRun)
         {
             HelpSystem system = new HelpSystem();
-            BatchHtmlConverter converter = new BatchHtmlConverter(system);
+            BatchHtmlFormatter converter = new BatchHtmlFormatter(system);
 
             foreach (string fileName in fileNames)
             {
@@ -46,7 +46,7 @@ namespace HelpConvert
                 int topicIndex = 0;
                 foreach (HelpTopic topic in database.Topics)
                 {
-                    string html = converter.ConvertTopic(topic);
+                    string html = converter.FormatTopic(topic);
                     string htmlFileName = Path.Combine(htmlPath, string.Format("T{0:X4}.html", topicIndex));
                     if (!isDryRun)
                     {
@@ -82,17 +82,17 @@ namespace HelpConvert
         }
     }
 
-    class BatchHtmlConverter : HtmlConverter
+    class BatchHtmlFormatter : HtmlFormatter
     {
         readonly HelpSystem system;
 
-        public BatchHtmlConverter(HelpSystem system)
+        public BatchHtmlFormatter(HelpSystem system)
         {
             base.FixLinks = true;
             this.system = system;
         }
 
-        protected override string ConvertUri(HelpTopic source, HelpUri uri)
+        protected override string FormatUri(HelpTopic source, HelpUri uri)
         {
             switch (uri.Type)
             {
