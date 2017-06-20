@@ -34,9 +34,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Converters\EmbeddedHtmlFormatter.cs" />
-    <Compile Include="Converters\HtmlConverter.cs" />
-    <Compile Include="Converters\TextConverter.cs" />
+    <Compile Include="Formatters\EmbeddedHtmlFormatter.cs" />
+    <Compile Include="Formatters\HtmlConverter.cs" />
+    <Compile Include="Formatters\TextConverter.cs" />
     <Compile Include="HelpDatabase.cs" />
     <Compile Include="HelpLine.cs" />
     <Compile Include="HelpSystem.cs" />
@@ -54,9 +54,7 @@
     <Compile Include="Serialization\StreamExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Converters\Default.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Formatters\Default.css" />
     <Content Include="Serialization\Format.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

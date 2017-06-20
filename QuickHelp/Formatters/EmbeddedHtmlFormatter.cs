@@ -14,7 +14,7 @@ namespace QuickHelp.Formatters
         private static string LoadStyleSheet()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
-            string resourceName = "QuickHelp.Converters.Default.css";
+            string resourceName = "QuickHelp.Formatters.Default.css";
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             using (StreamReader reader = new StreamReader(stream))
             {
