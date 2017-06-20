@@ -35,8 +35,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Formatters\EmbeddedHtmlFormatter.cs" />
-    <Compile Include="Formatters\HtmlConverter.cs" />
-    <Compile Include="Formatters\TextConverter.cs" />
+    <Compile Include="Formatters\HtmlFormatter.cs" />
+    <Compile Include="Formatters\TextFormatter.cs" />
     <Compile Include="HelpDatabase.cs" />
     <Compile Include="HelpLine.cs" />
     <Compile Include="HelpSystem.cs" />
