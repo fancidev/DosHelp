@@ -7,28 +7,28 @@ using System.IO;
 namespace QuickHelp.Converters
 {
     /// <summary>
-    /// Provides methods to convert help topics into HTML format.
+    /// Provides methods to render help topics as HTML.
     /// </summary>
     public class HtmlConverter
     {
         public static readonly HtmlConverter Default = new HtmlConverter
         {
-            AutoFixHyperlinks = true,
+            FixLinks = true,
         };
 
         /// <summary>
-        /// Gets or sets a flag indicating whether to automatically fix
-        /// hyperlinks according to one of the following rules:
-        /// - If the hyperlink ends with ►, does not start with ◄, and is not
-        ///   a single ►, the ending ► is excluded from the hyperlink.
+        /// Gets or sets a flag that controls whether to fix links in the
+        /// output.
         /// </summary>
-        public bool AutoFixHyperlinks { get; set; }
+        /// <remarks>
+        /// If this property is set to <c>true</c>, the renderer excludes
+        /// the enclosing pair of ◄ and ► from the link.
+        /// </remarks>
+        public bool FixLinks { get; set; }
 
         /// <summary>
-        /// Converts the given help topic into HTML format.
+        /// Renders the given help topic as HTML and returns the HTML source.
         /// </summary>
-        /// <param name="topic">The help topic to convert.</param>
-        /// <returns>The HTML source for the topic.</returns>
         public string ConvertTopic(HelpTopic topic)
         {
             if (topic == null)
@@ -58,9 +58,8 @@ namespace QuickHelp.Converters
         }
 
         /// <summary>
-        /// Converts a help line into HTML format.
+        /// Renders a help line as HTML and returns the HTML source.
         /// </summary>
-        /// <returns>HTML representation of the line.</returns>
         /// <remarks>
         /// This method produces properly structured HTML. That is, it avoids
         /// markup such as 
@@ -75,7 +74,7 @@ namespace QuickHelp.Converters
         /// </remarks>
         private void FormatLine(StringBuilder html, HelpTopic topic, HelpLine line)
         {
-            if (this.AutoFixHyperlinks)
+            if (this.FixLinks)
             {
                 line = FixLine(line);
             }

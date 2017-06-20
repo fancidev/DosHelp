@@ -88,7 +88,7 @@ namespace HelpConvert
 
         public BatchHtmlConverter(HelpSystem system)
         {
-            base.AutoFixHyperlinks = true;
+            base.FixLinks = true;
             this.system = system;
         }
 
