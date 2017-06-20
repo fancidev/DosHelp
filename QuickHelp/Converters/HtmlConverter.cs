@@ -33,11 +33,14 @@ namespace QuickHelp.Converters
                 throw new ArgumentNullException(nameof(topic));
 
             StringBuilder html = new StringBuilder();
-            html.AppendFormat("<html><head><title>{0}</title></head>\r\n",
-                              Escape(topic.Title));
-            html.AppendLine("<body>");
+            html.AppendLine("<html>");
+            html.AppendLine("  <head>");
+            html.AppendLine(string.Format("    <title>{0}</title>", Escape(topic.Title)));
+            html.AppendLine("    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
+            html.AppendLine("  </head>");
+            html.AppendLine("  <body>");
 
-            html.Append("<pre class=\"content\">");
+            html.Append("    <pre class=\"help-content\">");
             for (int i = 0; i < topic.Lines.Count; i++)
             {
                 FormatLine(html, topic, topic.Lines[i]);
@@ -46,6 +49,7 @@ namespace QuickHelp.Converters
             }
             html.AppendLine("</pre>");
 
+            html.AppendLine("  </body>");
             html.AppendLine("</html>");
             return html.ToString();
         }
