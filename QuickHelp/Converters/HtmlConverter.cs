@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using System.IO;
 
 namespace QuickHelp.Converters
 {
@@ -37,6 +39,7 @@ namespace QuickHelp.Converters
             html.AppendLine("  <head>");
             html.AppendLine(string.Format("    <title>{0}</title>", Escape(topic.Title)));
             html.AppendLine("    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">");
+            html.Append(GetStyleSheet());
             html.AppendLine("  </head>");
             html.AppendLine("  <body>");
 
@@ -179,6 +182,24 @@ namespace QuickHelp.Converters
                 html.Append("</i>");
             if ((change & TextStyle.Underline) != 0)
                 html.Append("</u>");
+        }
+
+        protected virtual string GetStyleSheet()
+        {
+            return string.Format("    <style>\n{0}\n    </style>\n", s_styleSheet);
+        }
+
+        private static string s_styleSheet = LoadStyleSheet();
+
+        private static string LoadStyleSheet()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "QuickHelp.Converters.Default.css";
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
         }
 
         public static string Escape(string s)

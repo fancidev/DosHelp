@@ -1,0 +1,22 @@
+.help-content {
+    font-family: Consolas;
+    font-size: 12pt;
+}
+
+.help-content a:link {
+    color: blue;
+    text-decoration: none;
+}
+
+.help-content a:visited {
+    color: blue;
+}
+
+.help-content a:hover {
+    color: blue;
+    text-decoration: underline;
+}
+
+.help-content a:active {
+    color: blue;
+}
