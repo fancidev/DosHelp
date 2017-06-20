@@ -37,32 +37,14 @@ namespace QuickHelp.Converters
                               Escape(topic.Title));
             html.AppendLine("<body>");
 
-            int freezeHeight = Math.Max(
-                0, Math.Min(topic.FreezeHeight, topic.Lines.Count));
-
-            if (freezeHeight > 0)
+            html.Append("<pre class=\"content\">");
+            for (int i = 0; i < topic.Lines.Count; i++)
             {
-                html.Append("<pre class=\"banner\">");
-                for (int i = 0; i < freezeHeight; i++)
-                {
-                    FormatLine(html, topic, topic.Lines[i]);
-                    if (i < freezeHeight - 1)
-                        html.AppendLine();
-                }
-                html.AppendLine("</pre>");
+                FormatLine(html, topic, topic.Lines[i]);
+                if (i < topic.Lines.Count - 1)
+                    html.AppendLine();
             }
-
-            if (freezeHeight < topic.Lines.Count)
-            {
-                html.Append("<pre class=\"content\">");
-                for (int i = freezeHeight; i < topic.Lines.Count; i++)
-                {
-                    FormatLine(html, topic, topic.Lines[i]);
-                    if (i < topic.Lines.Count - 1)
-                        html.AppendLine();
-                }
-                html.AppendLine("</pre>");
-            }
+            html.AppendLine("</pre>");
 
             html.AppendLine("</html>");
             return html.ToString();
