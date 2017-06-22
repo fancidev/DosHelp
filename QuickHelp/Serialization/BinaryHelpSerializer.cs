@@ -228,7 +228,7 @@ namespace QuickHelp.Serialization
             {
                 nodeValues[i] = reader.ReadInt16();
             }
-            file.HuffmanTree = new CompactHuffmanTree(nodeValues);
+            file.HuffmanTree = new HuffmanTree(nodeValues);
         }
 
         private static readonly Graphic437Encoding Graphic437 =

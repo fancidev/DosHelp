@@ -15,7 +15,7 @@ namespace QuickHelp.Serialization
         public string[] ContextStrings;
         public UInt16[] ContextMapping;
         public byte[][] Dictionary;
-        public CompactHuffmanTree HuffmanTree;
+        public HuffmanTree HuffmanTree;
     }
 
     class BinaryHelpFileHeader
