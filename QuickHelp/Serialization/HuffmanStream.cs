@@ -3,10 +3,6 @@ using System.IO;
 
 namespace QuickHelp.Serialization
 {
-    using HuffmanTreeNode = BinaryTreeNode<byte>;
-
-    // The huffman tree must be a full binary tree.
-
     /// <summary>
     /// Represents a huffman-encoded stream. Only supports decoding.
     /// </summary>
@@ -38,21 +34,15 @@ namespace QuickHelp.Serialization
 
         public override int ReadByte()
         {
-            HuffmanTreeNode node = huffmanTree.Root;
+            HuffmanDecoder decoder = new HuffmanDecoder(this.huffmanTree);
             while (true)
             {
-                if (node.IsLeaf)
-                    return node.Value;
-
                 int bit = bitStream.ReadByte();
                 if (bit < 0) // EOF
                     return -1;
 
-                // TBD here
-                if (bit == 0)
-                    node = node.LeftChild;
-                else
-                    node = node.RightChild;
+                if (!decoder.Next(bit != 0))
+                    return decoder.Symbol;
             }
         }
 

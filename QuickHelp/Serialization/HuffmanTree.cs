@@ -10,15 +10,24 @@ namespace QuickHelp.Serialization
     /// Represents a huffman tree that encodes a subset of the symbols 0-255.
     /// </summary>
     /// <remarks>
-    /// See Format.txt for a description of the huffman tree storage format.
+    /// A huffman tree is a proper binary tree that encodes symbols in the
+    /// leaf nodes. The oddity about the huffman tree used by QuickHelp is
+    /// that the left child maps to a bit of 1 and the right child maps to
+    /// a bit of zero. 
+    /// 
+    /// Use the helper class <c>HuffmanDecoder</c> for decoding.
     /// </remarks>
     public class HuffmanTree
     {
-        public BinaryTreeNode<byte> Root { get; set; }
+        internal BinaryTreeNode<byte> Root { get; set; }
 
         /// <summary>
-        /// Deserializes a proper binary tree.
+        /// Deserializes a huffman tree.
         /// </summary>
+        /// <remarks>
+        /// See Format.txt for details on the serialized format of a huffman
+        /// tree.
+        /// </remarks>
         public static HuffmanTree Deserialize(Int16[] nodeValues)
         {
             int n = nodeValues.Length;
@@ -50,8 +59,8 @@ namespace QuickHelp.Serialization
 
                     nodes[child0] = new HuffmanTreeNode();
                     nodes[child1] = new HuffmanTreeNode();
-                    node.LeftChild = nodes[child0];
-                    node.RightChild = nodes[child1];
+                    node.LeftChild = nodes[child1];
+                    node.RightChild = nodes[child0];
                 }
             }
             return new HuffmanTree { Root = nodes[0] };
@@ -59,9 +68,38 @@ namespace QuickHelp.Serialization
     }
 
     /// <summary>
+    /// Helper class to decode a single symbol from a huffman tree.
+    /// </summary>
+    public struct HuffmanDecoder
+    {
+        private HuffmanTreeNode m_node;
+
+        public HuffmanDecoder(HuffmanTree huffmanTree)
+        {
+            if (huffmanTree == null)
+                throw new ArgumentNullException(nameof(huffmanTree));
+            m_node = huffmanTree.Root;
+        }
+
+        public bool Next(bool bit)
+        {
+            HuffmanTreeNode node = bit ? m_node.LeftChild : m_node.RightChild;
+            if (node == null)
+                throw new InvalidOperationException("Cannot call Next() on a leaf node.");
+            m_node = node;
+            return !m_node.IsLeaf;
+        }
+
+        public byte Symbol
+        {
+            get { return m_node.Value; }
+        }
+    }
+
+    /// <summary>
     /// Represents a node in a binary tree.
     /// </summary>
-    public class BinaryTreeNode<T>
+    internal class BinaryTreeNode<T>
     {
         public T Value { get; set; }
 
