@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace QuickHelp.Serialization
 {
@@ -11,11 +9,13 @@ namespace QuickHelp.Serialization
     /// </summary>
     /// <remarks>
     /// A huffman tree is a proper binary tree that encodes symbols in the
-    /// leaf nodes. The oddity about the huffman tree used by QuickHelp is
-    /// that the left child maps to a bit of 1 and the right child maps to
-    /// a bit of zero. 
+    /// leaf nodes. A proper binary tree is a binary tree where every node
+    /// has either two children or no child.
     /// 
-    /// Use the helper class <c>HuffmanDecoder</c> for decoding.
+    /// The oddity about the huffman tree used by QuickHelp is that the left
+    /// child maps to a bit of 1 and the right child maps to a bit of 0.
+    /// 
+    /// Use the helper class <c>HuffmanDecoder</c> decode a symbol.
     /// </remarks>
     public class HuffmanTree
     {
@@ -25,15 +25,14 @@ namespace QuickHelp.Serialization
         /// Deserializes a huffman tree.
         /// </summary>
         /// <remarks>
-        /// See Format.txt for details on the serialized format of a huffman
-        /// tree.
+        /// See Format.txt for the serialized format of a huffman tree.
         /// </remarks>
         public static HuffmanTree Deserialize(Int16[] nodeValues)
         {
-            int n = nodeValues.Length;
-            if (n == 0)
-                return null;
+            if (nodeValues == null || nodeValues.Length == 0)
+                return new HuffmanTree();
 
+            int n = nodeValues.Length;
             HuffmanTreeNode[] nodes = new HuffmanTreeNode[n];
             nodes[0] = new HuffmanTreeNode();
 
@@ -65,7 +64,80 @@ namespace QuickHelp.Serialization
             }
             return new HuffmanTree { Root = nodes[0] };
         }
+
+#if false
+        public void Dump()
+        {
+            Dump(0, 0);
+        }
+
+        internal void Dump(int nodeIndex, int depth)
+        {
+            System.Diagnostics.Debug.Write(nodeIndex.ToString("000"));
+
+
+            if (IsLeaf)
+            {
+                //byte b = node.Symbol;
+                //if (b > 32 && b < 127)
+                //    System.Diagnostics.Debug.WriteLine("=" + (char)b);
+                //else
+                //    System.Diagnostics.Debug.WriteLine("=" + b.ToString("X2"));
+                System.Diagnostics.Debug.WriteLine(string.Format("={0}", Value));
+            }
+            else
+            {
+                //System.Diagnostics.Debug.Write("-");
+                //if (LeftChild!=null)
+                //LeftChild Dump(node.OneBitChildIndex, depth + 1);
+
+                //System.Diagnostics.Debug.Write(new string(' ', 4 * (depth + 1)));
+                //Dump(node.ZeroBitChildIndex, depth + 1);
+            }
+        }
+#endif
     }
+
+#if false
+    /// <summary>
+    /// Represents a read-only sequence of bits.
+    /// </summary>
+    public class BitBuffer
+    {
+        private readonly byte[] m_buffer;
+        private readonly int m_startBitIndex;
+        private readonly int m_bitCount;
+
+        /// <summary>
+        /// Creates a bit sequence from the underlying byte buffer. The bits
+        /// are stored in big-endian order, i.e. from MSB to LSB.
+        /// </summary>
+        public BitBuffer(byte[] buffer, int startBitIndex, int bitCount)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            if (!(startBitIndex >= 0 && startBitIndex <= buffer.Length * 8))
+                throw new ArgumentOutOfRangeException(nameof(startBitIndex));
+            if (!(bitCount >= 0 && bitCount <= buffer.Length * 8 - startBitIndex))
+                throw new ArgumentOutOfRangeException(nameof(bitCount));
+
+            m_buffer = buffer;
+            m_startBitIndex = startBitIndex;
+            m_bitCount = bitCount;
+        }
+
+        public bool this[int bitIndex]
+        {
+            get
+            {
+                if (!(bitIndex >= 0 && bitIndex < m_bitCount))
+                    throw new ArgumentOutOfRangeException(nameof(bitIndex));
+                int k = m_startBitIndex + bitIndex;
+                return (m_buffer[k / 8] >> (7 - (k % 8))) != 0;
+            }
+        }
+    }
+#endif
 
     /// <summary>
     /// Helper class to decode a single symbol from a huffman tree.
@@ -83,6 +155,10 @@ namespace QuickHelp.Serialization
 
         public bool Next(bool bit)
         {
+            if (m_node == null)
+                throw new InvalidOperationException("Cannot walk an empty tree.");
+
+
             HuffmanTreeNode node = bit ? m_node.LeftChild : m_node.RightChild;
             if (node == null)
                 throw new InvalidOperationException("Cannot call Next() on a leaf node.");
@@ -129,31 +205,6 @@ namespace QuickHelp.Serialization
                     return LeftChild.IsProper && RightChild.IsProper;
                 else
                     return false;
-            }
-        }
-
-        internal void Dump(int nodeIndex, int depth)
-        {
-            System.Diagnostics.Debug.Write(nodeIndex.ToString("000"));
-
-
-            if (IsLeaf)
-            {
-                //byte b = node.Symbol;
-                //if (b > 32 && b < 127)
-                //    System.Diagnostics.Debug.WriteLine("=" + (char)b);
-                //else
-                //    System.Diagnostics.Debug.WriteLine("=" + b.ToString("X2"));
-                System.Diagnostics.Debug.WriteLine(string.Format("={0}", Value));
-            }
-            else
-            {
-                //System.Diagnostics.Debug.Write("-");
-                //if (LeftChild!=null)
-                //LeftChild Dump(node.OneBitChildIndex, depth + 1);
-
-                //System.Diagnostics.Debug.Write(new string(' ', 4 * (depth + 1)));
-                //Dump(node.ZeroBitChildIndex, depth + 1);
             }
         }
     }
