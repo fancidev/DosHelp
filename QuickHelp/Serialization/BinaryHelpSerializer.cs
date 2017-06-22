@@ -32,6 +32,11 @@ namespace QuickHelp.Serialization
             }
         }
 
+        public HelpDatabase DeserializeDatabase(BinaryReader reader)
+        {
+            return DeserializeDatabase(reader, new SerializationOptions());
+        }
+
         /// <summary>
         /// Deserializes the next help database from a binary reader.
         /// </summary>
@@ -41,14 +46,20 @@ namespace QuickHelp.Serialization
         /// meta data. It raises an <c>InvalidTopicData</c> event for each
         /// format error it encounters during topic deserialization.
         /// </remarks>
-        public HelpDatabase DeserializeDatabase(BinaryReader reader)
+        public HelpDatabase DeserializeDatabase(
+            BinaryReader reader, SerializationOptions options)
         {
-            BinaryHelpMetaData metaData = ReadMetaData(reader);
-            HelpDatabase database = CreateDatabase(reader, metaData);
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
+            if (options == null)
+                options = new SerializationOptions();
+
+            BinaryHelpMetaData metaData = ReadMetaData(reader, options);
+            HelpDatabase database = CreateDatabase(reader, metaData, options);
             return database;
         }
 
-        private static BinaryHelpMetaData ReadMetaData(BinaryReader reader)
+        private static BinaryHelpMetaData ReadMetaData(BinaryReader reader, SerializationOptions options)
         {
             BinaryHelpMetaData file = new BinaryHelpMetaData();
             ReadFileHeader(reader, file);
@@ -56,13 +67,14 @@ namespace QuickHelp.Serialization
             ReadContextStrings(reader, file);
             ReadContextMapping(reader, file);
             ReadDictionary(reader, file);
-            ReadHuffmanTree(reader, file);
+            ReadHuffmanTree(reader, file, options);
             //file.HuffmanTree.Dump();
             return file;
         }
 
         // Create a help database and initialize its structure.
-        private HelpDatabase CreateDatabase(BinaryReader reader, BinaryHelpMetaData file)
+        private HelpDatabase CreateDatabase(
+            BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
             bool isCaseSensitive = (file.Header.Attributes & HelpFileAttributes.CaseSensitive) != 0;
             HelpDatabase database = new HelpDatabase(file.Header.DatabaseName, isCaseSensitive);
@@ -99,7 +111,7 @@ namespace QuickHelp.Serialization
 
                 try
                 {
-                    byte[] decompressedData = DecompressTopicData(input, topic, file);
+                    byte[] decompressedData = DecompressTopicData(input, topic, file, options);
                     if (decompressedData == null)
                         continue;
 
@@ -215,7 +227,7 @@ namespace QuickHelp.Serialization
             file.Dictionary = entries.ToArray();
         }
 
-        private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file)
+        private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
             int huffmanTreeSize = file.Header.TopicDataOffset -
                                   file.Header.HuffmanTreeOffset;
@@ -228,13 +240,14 @@ namespace QuickHelp.Serialization
             {
                 nodeValues[i] = reader.ReadInt16();
             }
-            file.HuffmanTree = new HuffmanTree(nodeValues);
+            options.HuffmanTree=HuffmanTree.Deserialize(nodeValues);
         }
 
         private static readonly Graphic437Encoding Graphic437 =
             new Graphic437Encoding();
 
-        private byte[] DecompressTopicData(byte[] input, HelpTopic topic, BinaryHelpMetaData file)
+        private byte[] DecompressTopicData(byte[] input, HelpTopic topic,
+            BinaryHelpMetaData file, SerializationOptions options)
         {
             // The first two bytes indicates decompressed data size.
             if (input.Length < 2)
@@ -250,7 +263,7 @@ namespace QuickHelp.Serialization
             // compression stream wrapping binary-encoded topic data.
             byte[] output;
             using (var memoryStream = new MemoryStream(input, 2, input.Length - 2))
-            using (var huffmanStream = new HuffmanStream(memoryStream, file.HuffmanTree))
+            using (var huffmanStream = new HuffmanStream(memoryStream, options.HuffmanTree))
             using (var compressionStream = new CompressionStream(huffmanStream, file.Dictionary))
             using (var compressionReader = new BinaryReader(compressionStream))
             {

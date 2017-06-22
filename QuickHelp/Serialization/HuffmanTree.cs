@@ -4,6 +4,8 @@ using System.Text;
 
 namespace QuickHelp.Serialization
 {
+    using HuffmanTreeNode = BinaryTreeNode<byte>;
+
     /// <summary>
     /// Represents a huffman tree that encodes a subset of the symbols 0-255.
     /// </summary>
@@ -12,110 +14,108 @@ namespace QuickHelp.Serialization
     /// </remarks>
     public class HuffmanTree
     {
-        private readonly HuffmanTreeNode[] nodes;
+        public BinaryTreeNode<byte> Root { get; set; }
 
-        public HuffmanTree(Int16[] nodeValues)
+        /// <summary>
+        /// Deserializes a proper binary tree.
+        /// </summary>
+        public static HuffmanTree Deserialize(Int16[] nodeValues)
         {
-            this.nodes = new HuffmanTreeNode[nodeValues.Length];
-            for (int i = 0; i < nodeValues.Length; i++)
-                this.nodes[i] = new HuffmanTreeNode(i, nodeValues[i]);
-        }
+            int n = nodeValues.Length;
+            if (n == 0)
+                return null;
 
-        public HuffmanTreeNode[] Nodes
-        {
-            get { return nodes; }
-        }
+            HuffmanTreeNode[] nodes = new HuffmanTreeNode[n];
+            nodes[0] = new HuffmanTreeNode();
 
-        public void Dump()
-        {
-            Dump(0, 0);
-        }
-
-        private void Dump(int nodeIndex, int depth)
-        {
-            System.Diagnostics.Debug.Write(nodeIndex.ToString("000"));
-            HuffmanTreeNode node = nodes[nodeIndex];
-
-            if (node.IsLeaf)
+            for (int i = 0; i < n; i++)
             {
-                byte b = node.Symbol;
-                if (b > 32 && b < 127)
-                    System.Diagnostics.Debug.WriteLine("=" + (char)b);
-                else
-                    System.Diagnostics.Debug.WriteLine("=" + b.ToString("X2"));
-            }
-            else
-            {
-                System.Diagnostics.Debug.Write("-");
-                Dump(node.OneBitChildIndex, depth + 1);
+                HuffmanTreeNode node = nodes[i];
+                if (node == null) // not referenced
+                    continue;
 
-                System.Diagnostics.Debug.Write(new string(' ', 4 * (depth + 1)));
-                Dump(node.ZeroBitChildIndex, depth + 1);
+                short nodeValue = nodeValues[i];
+                if (nodeValue < 0) // leaf; symbol stored in low byte
+                {
+                    node.Value = (byte)nodeValue;
+                }
+                else // right-child (1 bit) follows, left-child (0 bit) encoded
+                {
+                    int child0 = nodeValue / 2;
+                    int child1 = i + 1;
+                    if (!(child1 < child0 && child0 < n))
+                        throw new ArgumentException("Tree is invalid.");
+                    if (nodes[child0] != null || nodes[child1] != null)
+                        throw new ArgumentException("Tree is invalid.");
+
+                    nodes[child0] = new HuffmanTreeNode();
+                    nodes[child1] = new HuffmanTreeNode();
+                    node.LeftChild = nodes[child0];
+                    node.RightChild = nodes[child1];
+                }
             }
+            return new HuffmanTree { Root = nodes[0] };
         }
     }
 
     /// <summary>
-    /// Represents a node in a compactly stored huffman tree.
+    /// Represents a node in a binary tree.
     /// </summary>
-    public struct HuffmanTreeNode
+    public class BinaryTreeNode<T>
     {
-        readonly short nodeIndex;
-        readonly short nodeValue;
+        public T Value { get; set; }
 
-        public HuffmanTreeNode(int nodeIndex, short nodeValue)
-        {
-            this.nodeIndex = (short)nodeIndex;
-            this.nodeValue = nodeValue;
-        }
+        public BinaryTreeNode<T> LeftChild { get; set; }
+
+        public BinaryTreeNode<T> RightChild { get; set; }
 
         /// <summary>
-        /// Gets a flag that indicates whether this node is a leaf node.
+        /// Returns <c>true</c> if this node has no child.
         /// </summary>
         public bool IsLeaf
         {
-            get { return nodeValue < 0; }
+            get { return LeftChild == null && RightChild == null; }
         }
 
         /// <summary>
-        /// Gets the symbol encoded by this node.
+        /// Returns <c>true</c> if every node has either two children or no
+        /// child.
         /// </summary>
-        /// <exception cref="InvalidOperationException">
-        /// If this node is not a leaf node.
-        /// </exception>
-        public byte Symbol
+        public bool IsProper
         {
             get
             {
-                if (!IsLeaf)
-                    throw new InvalidOperationException("This node is not a leaf node.");
-                return (byte)nodeValue;
+                if (LeftChild == null && RightChild == null)
+                    return true;
+                else if (LeftChild != null && RightChild != null)
+                    return LeftChild.IsProper && RightChild.IsProper;
+                else
+                    return false;
             }
         }
 
-        /// <summary>
-        /// Gets the index of the child node that encodes a 0 bit.
-        /// </summary>
-        public int ZeroBitChildIndex
+        internal void Dump(int nodeIndex, int depth)
         {
-            get
-            {
-                if (IsLeaf)
-                    throw new InvalidOperationException("This node is not an internal node.");
-                return nodeValue / 2;
-            }
-        }
+            System.Diagnostics.Debug.Write(nodeIndex.ToString("000"));
 
-        /// <summary>
-        /// Gets the index of the child node that encodes a 1 bit.
-        /// </summary>
-        public int OneBitChildIndex
-        {
-            get
+
+            if (IsLeaf)
             {
-                if (IsLeaf)
-                    throw new InvalidOperationException("This node is not an internal node.");
-                return nodeIndex + 1;
+                //byte b = node.Symbol;
+                //if (b > 32 && b < 127)
+                //    System.Diagnostics.Debug.WriteLine("=" + (char)b);
+                //else
+                //    System.Diagnostics.Debug.WriteLine("=" + b.ToString("X2"));
+                System.Diagnostics.Debug.WriteLine(string.Format("={0}", Value));
+            }
+            else
+            {
+                //System.Diagnostics.Debug.Write("-");
+                //if (LeftChild!=null)
+                //LeftChild Dump(node.OneBitChildIndex, depth + 1);
+
+                //System.Diagnostics.Debug.Write(new string(' ', 4 * (depth + 1)));
+                //Dump(node.ZeroBitChildIndex, depth + 1);
             }
         }
     }
