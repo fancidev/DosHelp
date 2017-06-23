@@ -23,13 +23,13 @@ namespace QuickHelp.Serialization
         /// controls the compression level in the serialized .HLP file. If
         /// Format is Markup, this value is ignored.
         /// 
-        /// On deserialization, this value is ignored and updated to the
-        /// actual compression level used in the input.
+        /// On deserialization, this property is set to the actual compression
+        /// level used in the input.
         /// </remarks>
         public CompressionFlags Compression { get; set; }
 
         /// <summary>
-        /// Gets a list of keywords used for keyword compression.
+        /// Gets or sets a list of keywords used for keyword compression.
         /// </summary>
         /// <remarks>
         /// On serialization, if keyword compression is enabled, the
@@ -37,11 +37,25 @@ namespace QuickHelp.Serialization
         /// is not <c>null</c>, or computes the dictionary on the fly and 
         /// updates this property if it is null.
         /// 
-        /// On deserialization, the serializaer sets this property to the
-        /// actual dictionary used in the input.
+        /// On deserialization, the serializer sets this property to the
+        /// actual dictionary used in the input or <c>null</c> if the source
+        /// does not use keyword compression.
         /// </remarks>
         public KeywordCollection Keywords { get; set; }
 
+        /// <summary>
+        /// Gets or sets the Huffman tree used for Huffman compression.
+        /// </summary>
+        /// <remarks>
+        /// On serialization, if Huffman compression is enabled, the
+        /// serializer uses the Huffman tree specified by this property if it
+        /// is not <c>null</c>, or computes a Huffman tree on-the-fly and
+        /// updates this property if it is <c>null</c>.
+        /// 
+        /// On deserialization, the serializer sets this property to the
+        /// actual Huffman tree used in the input, or <c>null</c> if the
+        /// source does not use Huffman compression.
+        /// </remarks>
         public HuffmanTree HuffmanTree { get; set; }
     }
 
