@@ -9,18 +9,29 @@ namespace QuickHelp.Serialization
     /// Represents a huffman tree that encodes a subset of the symbols 0-255.
     /// </summary>
     /// <remarks>
-    /// A huffman tree is a proper binary tree that encodes symbols in the
+    /// A huffman tree is a proper binary tree that encodes symbols in its
     /// leaf nodes. A proper binary tree is a binary tree where every node
     /// has either two children or no child.
     /// 
-    /// The oddity about the huffman tree used by QuickHelp is that the left
-    /// child maps to a bit of 1 and the right child maps to a bit of 0.
+    /// For completeness this class supports two special cases: (i) an empty
+    /// tree, where no symbol is encoded, and (ii) a tree with a single node,
+    /// where the unique symbol is emitted without consuming any input.
     /// 
-    /// Use the helper class <c>HuffmanDecoder</c> decode a symbol.
+    /// Use the helper class <c>HuffmanDecoder</c> to decode a symbol.
     /// </remarks>
     public class HuffmanTree
     {
         internal BinaryTreeNode<byte> Root { get; set; }
+
+        public bool IsEmpty
+        {
+            get { return Root == null; }
+        }
+
+        public bool IsSingular
+        {
+            get { return Root != null && Root.IsLeaf; }
+        }
 
         public static HuffmanTree Deserialize(byte[] buffer)
         {
@@ -81,8 +92,8 @@ namespace QuickHelp.Serialization
 
                     nodes[child0] = new HuffmanTreeNode();
                     nodes[child1] = new HuffmanTreeNode();
-                    node.LeftChild = nodes[child1];
-                    node.RightChild = nodes[child0];
+                    node.LeftChild = nodes[child0];
+                    node.RightChild = nodes[child1];
                 }
             }
             return new HuffmanTree { Root = nodes[0] };
@@ -165,6 +176,21 @@ namespace QuickHelp.Serialization
     /// <summary>
     /// Helper class to decode a single symbol from a huffman tree.
     /// </summary>
+    /// <remarks>
+    /// This class should be used like the following:
+    /// <code>
+    ///   HuffmanDecoder decoder = new HuffmanDecoder(tree);
+    ///   while (!decoder.HasValue) decoder.Push([next bit in the input]);
+    ///   Console.WriteLine(decoder.Value);
+    /// </code>
+    /// Two special cases should be handled with care. If the huffman tree 
+    /// is empty, <c>HasValue</c> always contains <c>false</c> and calling
+    /// <c>Push()</c> results in an exception. If the huffman tree contains
+    /// a single node, <c>HasValue</c> is <c>true</c> upon construction and
+    /// the unique symbol is available without consuming any bit. In this 
+    /// case caller must know the decoded data length a-priori in order not
+    /// to run into an infinite loop.
+    /// </remarks>
     public struct HuffmanDecoder
     {
         private HuffmanTreeNode m_node;
@@ -176,22 +202,29 @@ namespace QuickHelp.Serialization
             m_node = huffmanTree.Root;
         }
 
-        public bool Next(bool bit)
+        public bool HasValue
+        {
+            get { return m_node != null && m_node.IsLeaf; }
+        }
+
+        public byte Value
+        {
+            get
+            {
+                if (!this.HasValue)
+                    throw new InvalidOperationException("Decoder does not have a value.");
+                return m_node.Value;
+            }
+        }
+
+        public void Push(bool bit)
         {
             if (m_node == null)
                 throw new InvalidOperationException("Cannot walk an empty tree.");
+            if (m_node.IsLeaf)
+                throw new InvalidOperationException("Cannot walk further from a leaf.");
 
-
-            HuffmanTreeNode node = bit ? m_node.LeftChild : m_node.RightChild;
-            if (node == null)
-                throw new InvalidOperationException("Cannot call Next() on a leaf node.");
-            m_node = node;
-            return !m_node.IsLeaf;
-        }
-
-        public byte Symbol
-        {
-            get { return m_node.Value; }
+            m_node = bit ? m_node.RightChild : m_node.LeftChild;
         }
     }
 
@@ -212,23 +245,6 @@ namespace QuickHelp.Serialization
         public bool IsLeaf
         {
             get { return LeftChild == null && RightChild == null; }
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> if every node has either two children or no
-        /// child.
-        /// </summary>
-        public bool IsProper
-        {
-            get
-            {
-                if (LeftChild == null && RightChild == null)
-                    return true;
-                else if (LeftChild != null && RightChild != null)
-                    return LeftChild.IsProper && RightChild.IsProper;
-                else
-                    return false;
-            }
         }
     }
 }

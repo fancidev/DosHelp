@@ -231,7 +231,10 @@ namespace QuickHelp.Serialization
         {
             int sectionSize = file.Header.TopicDataOffset - file.Header.HuffmanTreeOffset;
             byte[] section = reader.ReadBytes(sectionSize);
-            options.HuffmanTree = HuffmanTree.Deserialize(section);
+            HuffmanTree tree = HuffmanTree.Deserialize(section);
+            if (tree.IsEmpty || tree.IsSingular)
+                throw new InvalidDataException("Invalid huffman tree.");
+            options.HuffmanTree = tree;
         }
 
         private static readonly Graphic437Encoding Graphic437 =

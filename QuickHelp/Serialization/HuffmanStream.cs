@@ -35,15 +35,14 @@ namespace QuickHelp.Serialization
         public override int ReadByte()
         {
             HuffmanDecoder decoder = new HuffmanDecoder(this.huffmanTree);
-            while (true)
+            while (!decoder.HasValue)
             {
                 int bit = bitStream.ReadByte();
                 if (bit < 0) // EOF
                     return -1;
-
-                if (!decoder.Next(bit != 0))
-                    return decoder.Symbol;
+                decoder.Push(bit != 0);
             }
+            return decoder.Value;
         }
 
         #region Stream Members
