@@ -16,7 +16,7 @@ namespace QuickHelp.Serialization
         public static bool ContainsControlCharacter(string s)
         {
             if (s == null)
-                throw new ArgumentNullException("s");
+                throw new ArgumentNullException(nameof(s));
 
             for (int i = 0; i < s.Length; i++)
             {
@@ -29,7 +29,7 @@ namespace QuickHelp.Serialization
         public static void SubstituteControlCharacters(char[] chars)
         {
             if (chars == null)
-                throw new ArgumentNullException("chars");
+                throw new ArgumentNullException(nameof(chars));
 
             SubstituteControlCharacters(chars, 0, chars.Length);
         }
@@ -37,11 +37,11 @@ namespace QuickHelp.Serialization
         public static void SubstituteControlCharacters(char[] chars, int index, int count)
         {
             if (chars == null)
-                throw new ArgumentNullException("chars");
+                throw new ArgumentNullException(nameof(chars));
             if (index < 0 || index > chars.Length)
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             if (count < 0 || count > chars.Length - index)
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             for (int i = index; i < index + count; i++)
             {

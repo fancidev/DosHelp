@@ -104,9 +104,9 @@ namespace QuickHelp
         public void AddContext(string contextString, int topicIndex)
         {
             if (contextString == null)
-                throw new ArgumentNullException("contextString");
+                throw new ArgumentNullException(nameof(contextString));
             if (topicIndex < 0 || topicIndex >= this.topics.Count)
-                throw new IndexOutOfRangeException("topicIndex");
+                throw new IndexOutOfRangeException(nameof(topicIndex));
 
             contextMap[contextString] = topicIndex;
         }
