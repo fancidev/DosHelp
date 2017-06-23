@@ -229,18 +229,9 @@ namespace QuickHelp.Serialization
 
         private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
-            int huffmanTreeSize = file.Header.TopicDataOffset -
-                                  file.Header.HuffmanTreeOffset;
-            if (huffmanTreeSize % 2 != 0)
-                throw new InvalidDataException("Huffman tree size must be even.");
-
-            int nodeCount = huffmanTreeSize / 2;
-            short[] nodeValues = new Int16[nodeCount];
-            for (int i = 0; i < nodeCount; i++)
-            {
-                nodeValues[i] = reader.ReadInt16();
-            }
-            options.HuffmanTree=HuffmanTree.Deserialize(nodeValues);
+            int sectionSize = file.Header.TopicDataOffset - file.Header.HuffmanTreeOffset;
+            byte[] section = reader.ReadBytes(sectionSize);
+            options.HuffmanTree = HuffmanTree.Deserialize(section);
         }
 
         private static readonly Graphic437Encoding Graphic437 =

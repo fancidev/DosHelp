@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace QuickHelp.Serialization
 {
@@ -21,14 +22,36 @@ namespace QuickHelp.Serialization
     {
         internal BinaryTreeNode<byte> Root { get; set; }
 
+        public static HuffmanTree Deserialize(byte[] buffer)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(buffer)))
+            {
+                short[] nodeValues = new Int16[512];
+                for (int i = 0; i < 512; i++)
+                {
+                    nodeValues[i] = reader.ReadInt16();
+                    if (nodeValues[i] == 0)
+                        return Deserialize(nodeValues);
+                }
+            }
+            throw new InvalidDataException("Huffman tree too long.");
+        }
+
         /// <summary>
         /// Deserializes a huffman tree.
         /// </summary>
         /// <remarks>
         /// See Format.txt for the serialized format of a huffman tree.
         /// </remarks>
-        public static HuffmanTree Deserialize(Int16[] nodeValues)
+        private static HuffmanTree Deserialize(Int16[] nodeValues)
         {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(nodeValues.Length <= 512);
+            System.Diagnostics.Debug.Assert(nodeValues[nodeValues.Length - 1] == 0);
+#endif
             if (nodeValues == null || nodeValues.Length == 0)
                 return new HuffmanTree();
 
