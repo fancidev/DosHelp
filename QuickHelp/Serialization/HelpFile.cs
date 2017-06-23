@@ -14,7 +14,7 @@ namespace QuickHelp.Serialization
         public int[] TopicOffsets;
         public string[] ContextStrings;
         public UInt16[] ContextMapping;
-        public byte[][] Dictionary;
+        //public byte[][] Dictionary;
         //public BinaryTree HuffmanTree;
     }
 

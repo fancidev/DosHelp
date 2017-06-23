@@ -66,7 +66,7 @@ namespace QuickHelp.Serialization
             ReadTopicOffsets(reader, file);
             ReadContextStrings(reader, file);
             ReadContextMapping(reader, file);
-            ReadDictionary(reader, file);
+            ReadDictionary(reader, file, options);
             ReadHuffmanTree(reader, file, options);
             //file.HuffmanTree.Dump();
             return file;
@@ -203,28 +203,19 @@ namespace QuickHelp.Serialization
             }
         }
 
-        private static void ReadDictionary(BinaryReader reader, BinaryHelpMetaData file)
+        private static void ReadDictionary(
+            BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
             if (file.Header.DictionaryOffset !=
                 file.Header.ContextMappingOffset + 2 * file.ContextMapping.Length)
                 throw new InvalidDataException("Invalid DictionaryOffset");
 
-            List<byte[]> entries = new List<byte[]>();
-            int dictionarySize = file.Header.HuffmanTreeOffset -
-                                 file.Header.DictionaryOffset;
-            int numBytesRead = 0;
-            while (numBytesRead < dictionarySize)
-            {
-                byte length = reader.ReadByte();
-                byte[] entry = reader.ReadBytes(length);
-                if (entry.Length != length)
-                    throw new InvalidDataException("Invalid length.");
-                entries.Add(entry);
-                numBytesRead += 1 + length;
-            }
-            if (numBytesRead != dictionarySize)
-                throw new InvalidDataException("Dictionary size is wrong.");
-            file.Dictionary = entries.ToArray();
+            int sectionSize = file.Header.HuffmanTreeOffset - file.Header.DictionaryOffset;
+            byte[] section = reader.ReadBytes(sectionSize);
+            if (section.Length != sectionSize)
+                throw new InvalidDataException("Cannot fully read dictionary section.");
+
+            options.Keywords = KeywordListSerializer.Deserialize(section);
         }
 
         private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
@@ -258,7 +249,7 @@ namespace QuickHelp.Serialization
             byte[] output;
             using (var memoryStream = new MemoryStream(input, 2, input.Length - 2))
             using (var huffmanStream = new HuffmanStream(memoryStream, options.HuffmanTree))
-            using (var compressionStream = new CompressionStream(huffmanStream, file.Dictionary))
+            using (var compressionStream = new CompressionStream(huffmanStream, options.Keywords.ToArray()))
             using (var compressionReader = new BinaryReader(compressionStream))
             {
                 output = compressionReader.ReadBytes(decompressedLength);
