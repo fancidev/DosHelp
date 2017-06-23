@@ -26,7 +26,7 @@ namespace QuickHelp.Serialization
         public CompressionStream(Stream baseStream, byte[][] dictionary)
         {
             if (baseStream == null)
-                throw new ArgumentNullException("baseStream");
+                throw new ArgumentNullException(nameof(baseStream));
             if (dictionary == null)
                 dictionary = new byte[0][];
 
