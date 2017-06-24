@@ -2,20 +2,6 @@
 
 namespace QuickHelp.Serialization
 {
-    /// <summary>
-    /// Represents the contents of a help database as it is stored in a
-    /// physical file. A single physical file may contain multiple help
-    /// databases concatenated one after another.
-    /// </summary>
-    /// TODO: rename to HelpBinaryMetaData
-    class BinaryHelpMetaData
-    {
-        public BinaryHelpFileHeader Header;
-        public int[] TopicOffsets;
-        public string[] ContextStrings;
-        public UInt16[] ContextMapping;
-    }
-
     class BinaryHelpFileHeader
     {
         public UInt16 Signature;

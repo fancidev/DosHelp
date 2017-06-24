@@ -117,25 +117,6 @@ namespace QuickHelp.Serialization
             return database;
         }
 
-        private void ReadTopic(byte[] input, HelpTopic topic, SerializationOptions options)
-        {
-            try
-            {
-                byte[] decompressedData = DecompressTopicData(input, topic, options);
-                if (decompressedData != null)
-                {
-                    topic.Source = decompressedData;
-                    DecodeTopic(decompressedData, topic, options.ControlCharacter);
-                }
-            }
-            catch (Exception ex)
-            {
-                var e = new InvalidTopicDataEventArgs(topic, input,
-                    "Exception: " + ex.Message);
-                this.InvalidTopicData?.Invoke(this, e);
-            }
-        }
-        
         private static BinaryHelpFileHeader ReadFileHeader(Stream stream)
         {
             using (BinaryReader reader = new BinaryReader(new StreamView(stream, 0x46)))
@@ -175,44 +156,6 @@ namespace QuickHelp.Serialization
 
                 return header;
             }
-        }
-
-        private static void ReadFileHeader(BinaryReader reader, BinaryHelpMetaData file)
-        {
-            BinaryHelpFileHeader header = new BinaryHelpFileHeader();
-            header.Signature = reader.ReadUInt16();
-            header.Unknown1 = reader.ReadUInt16();
-            header.Attributes = (HelpFileAttributes)reader.ReadUInt16();
-            header.ControlCharacter = reader.ReadByte();
-            header.Unknown3 = reader.ReadByte();
-            header.TopicCount = reader.ReadUInt16();
-            header.ContextCount = reader.ReadUInt16();
-            header.DisplayWidth = reader.ReadByte();
-            header.Unknown4 = reader.ReadByte();
-            header.Unknown5 = reader.ReadUInt16();
-
-            byte[] stringData = reader.ReadBytes(14);
-            header.DatabaseName = Encoding.ASCII.GetString(stringData);
-            int k = header.DatabaseName.IndexOf('\0');
-            if (k >= 0)
-                header.DatabaseName = header.DatabaseName.Substring(0, k);
-
-            header.reserved1 = reader.ReadInt32();
-            header.TopicIndexOffset = reader.ReadInt32();
-            header.ContextStringsOffset = reader.ReadInt32();
-            header.ContextMapOffset = reader.ReadInt32();
-            header.KeywordsOffset = reader.ReadInt32();
-            header.HuffmanTreeOffset = reader.ReadInt32();
-            header.TopicTextOffset = reader.ReadInt32();
-            header.reserved2 = reader.ReadInt32();
-            header.reserved3 = reader.ReadInt32();
-            header.DatabaseSize = reader.ReadInt32();
-
-            // Verify signature.
-            if (header.Signature != 0x4E4C)
-                throw new InvalidDataException("File signature mismatch.");
-
-            file.Header = header;
         }
 
         private static int[] ReadTopicIndex(BinaryReader reader, BinaryHelpFileHeader header)
@@ -281,6 +224,25 @@ namespace QuickHelp.Serialization
             if (tree.IsEmpty || tree.IsSingular)
                 throw new InvalidDataException("Invalid huffman tree.");
             return tree;
+        }
+
+        private void ReadTopic(byte[] input, HelpTopic topic, SerializationOptions options)
+        {
+            try
+            {
+                byte[] decompressedData = DecompressTopicData(input, topic, options);
+                if (decompressedData != null)
+                {
+                    topic.Source = decompressedData;
+                    DecodeTopic(decompressedData, topic, options.ControlCharacter);
+                }
+            }
+            catch (Exception ex)
+            {
+                var e = new InvalidTopicDataEventArgs(topic, input,
+                    "Exception: " + ex.Message);
+                this.InvalidTopicData?.Invoke(this, e);
+            }
         }
 
         private static readonly Graphic437Encoding Graphic437 =
@@ -487,35 +449,6 @@ namespace QuickHelp.Serialization
             {
                 line.Attributes[j - 1] = new TextAttribute(line.Attributes[j - 1].Style, link);
             }
-        }
-
-        private void RepairTopicData()
-        {
-#if false
-            for (int byteIndex = 2; byteIndex < input.Length; byteIndex++)
-            {
-                byte original = input[byteIndex];
-                byte b;
-                for (b = (byte)(original + 1); b != original; b++)
-                {
-                    input[byteIndex] = b;
-                    try
-                    {
-                        TopicDecoder.Decode(input, topic, file);
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                if (b != original)
-                {
-                    break;
-                }
-                else
-                    input[byteIndex] = original;
-            }
-#endif
         }
     }
 
