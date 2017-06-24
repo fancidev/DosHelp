@@ -153,12 +153,12 @@ namespace QuickHelp.Serialization
                 header.DatabaseName = header.DatabaseName.Substring(0, k);
 
             header.reserved1 = reader.ReadInt32();
-            header.TopicOffsetsOffset = reader.ReadInt32();
+            header.TopicIndexOffset = reader.ReadInt32();
             header.ContextStringsOffset = reader.ReadInt32();
-            header.ContextMappingOffset = reader.ReadInt32();
-            header.DictionaryOffset = reader.ReadInt32();
+            header.ContextMapOffset = reader.ReadInt32();
+            header.KeywordsOffset = reader.ReadInt32();
             header.HuffmanTreeOffset = reader.ReadInt32();
-            header.TopicDataOffset = reader.ReadInt32();
+            header.TopicTextOffset = reader.ReadInt32();
             header.reserved2 = reader.ReadInt32();
             header.reserved3 = reader.ReadInt32();
             header.DatabaseSize = reader.ReadInt32();
@@ -172,7 +172,7 @@ namespace QuickHelp.Serialization
 
         private static void ReadTopicOffsets(BinaryReader reader, BinaryHelpMetaData file)
         {
-            if (file.Header.TopicOffsetsOffset != 0x46) // header size
+            if (file.Header.TopicIndexOffset != 0x46) // header size
                 throw new InvalidDataException("Invalid TopicOffsetsOffset.");
 
             file.TopicOffsets = new int[file.Header.TopicCount + 1];
@@ -184,12 +184,12 @@ namespace QuickHelp.Serialization
 
         private static void ReadContextStrings(BinaryReader reader, BinaryHelpMetaData file)
         {
-            if (file.Header.ContextStringsOffset - file.Header.TopicOffsetsOffset
+            if (file.Header.ContextStringsOffset - file.Header.TopicIndexOffset
                 != 4 * (file.Header.TopicCount + 1))
                 throw new InvalidDataException("Invalid ContextStringsOffset.");
 
             // TODO: the NULL at the very end produces an extra, empty context string.
-            int size = file.Header.ContextMappingOffset - file.Header.ContextStringsOffset;
+            int size = file.Header.ContextMapOffset - file.Header.ContextStringsOffset;
             string all = Encoding.ASCII.GetString(reader.ReadBytes(size));
             file.ContextStrings = all.Split('\0');
         }
@@ -206,11 +206,11 @@ namespace QuickHelp.Serialization
         private static void ReadDictionary(
             BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
-            if (file.Header.DictionaryOffset !=
-                file.Header.ContextMappingOffset + 2 * file.ContextMapping.Length)
+            if (file.Header.KeywordsOffset !=
+                file.Header.ContextMapOffset + 2 * file.ContextMapping.Length)
                 throw new InvalidDataException("Invalid DictionaryOffset");
 
-            int sectionSize = file.Header.HuffmanTreeOffset - file.Header.DictionaryOffset;
+            int sectionSize = file.Header.HuffmanTreeOffset - file.Header.KeywordsOffset;
             byte[] section = reader.ReadBytes(sectionSize);
             if (section.Length != sectionSize)
                 throw new InvalidDataException("Cannot fully read dictionary section.");
@@ -220,7 +220,7 @@ namespace QuickHelp.Serialization
 
         private static void ReadHuffmanTree(BinaryReader reader, BinaryHelpMetaData file, SerializationOptions options)
         {
-            int sectionSize = file.Header.TopicDataOffset - file.Header.HuffmanTreeOffset;
+            int sectionSize = file.Header.TopicTextOffset - file.Header.HuffmanTreeOffset;
             byte[] section = reader.ReadBytes(sectionSize);
             HuffmanTree tree = HuffmanTree.Deserialize(section);
             if (tree.IsEmpty || tree.IsSingular)
