@@ -85,6 +85,13 @@ namespace QuickHelp
             return topic;
         }
 
+        public void AddTopic(HelpTopic topic)
+        {
+            topic.Database = this;
+            topic.TopicIndex = this.topics.Count;
+            topics.Add(topic);
+        }
+
         /// <summary>
         /// Gets a list of the context strings defined in this database.
         /// </summary>

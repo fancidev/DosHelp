@@ -110,9 +110,16 @@ namespace QuickHelp.Serialization
                     int inputLength = topicOffsets[i + 1] - topicOffsets[i];
 
                     byte[] inputData = reader.ReadBytes(inputLength);
+#if false
                     database.NewTopic();
                     ReadTopic(inputData, database.Topics[i], options);
+#else
+                    HelpTopic topic = DeserializeTopic(inputData, options);
+                    database.AddTopic(topic);
+#endif
                 }
+                
+                // TODO: check position
             }
             return database;
         }
@@ -226,6 +233,57 @@ namespace QuickHelp.Serialization
             return tree;
         }
 
+        public HelpTopic DeserializeTopic(byte[] input, SerializationOptions options)
+        {
+            // Read decompressed length.
+            if (input.Length < 2)
+            {
+                //var e = new InvalidTopicDataEventArgs(topic, input,
+                //    "Not enough bytes for DecodedLength field.");
+                //this.InvalidTopicData?.Invoke(this, e);
+                return null;
+            }
+            int outputLength = BitConverter.ToUInt16(input, 0);
+
+            byte[] encodedData = new byte[input.Length - 2];
+            Array.Copy(input, 2, encodedData, 0, encodedData.Length);
+
+            // Step 3. Huffman decoding pass.
+            byte[] compactData;
+            if (options.HuffmanTree != null)
+                compactData = HuffmanDecode(encodedData, options.HuffmanTree);
+            else
+                compactData = encodedData;
+
+            // Step 2. Decompression pass.
+            byte[] binaryData = Decompress(compactData, outputLength, options.Keywords);
+
+            // Step 1. Decompile topic.
+            HelpTopic topic = DecompileTopic(binaryData, options.ControlCharacter);
+
+            return topic;
+        }
+
+        static byte[] HuffmanDecode(byte[] input, HuffmanTree huffmanTree)
+        {
+            using (var inputStream = new MemoryStream(input))
+            using (var huffmanStream = new HuffmanStream(inputStream, huffmanTree))
+            using (var reader = new BinaryReader(huffmanStream))
+            {
+                return reader.ReadBytes(1024 * 1024);
+            }
+        }
+
+        static byte[] Decompress(byte[] input, int outputLength, byte[][] keywords)
+        {
+            using (var inputStream = new MemoryStream(input))
+            using (var compressionStream = new CompressionStream(inputStream, keywords))
+            using (var reader = new BinaryReader(compressionStream))
+            {
+                return reader.ReadBytes(outputLength);
+            }
+        }
+
         private void ReadTopic(byte[] input, HelpTopic topic, SerializationOptions options)
         {
             try
@@ -281,6 +339,48 @@ namespace QuickHelp.Serialization
                 this.InvalidTopicData?.Invoke(this, e);
             }
             return output;
+        }
+
+        // TODO: compression is topic/database independent, so move them
+        // into a separate namespace/class.
+
+        static HelpTopic DecompileTopic(byte[] buffer, char controlCharacter)
+        {
+            HelpTopic topic = new HelpTopic();
+            BufferReader reader = new BufferReader(buffer, Graphic437);
+            while (!reader.IsEOF)
+            {
+                HelpLine line = null;
+                try
+                {
+                    DecodeLine(reader, out line);
+                }
+                catch (Exception)
+                {
+                    if (line != null)
+                        topic.Lines.Add(line);
+                    throw;
+                }
+
+                bool isCommand = true;
+                try
+                {
+                    isCommand = HelpCommandConverter.ProcessCommand(
+                        line.Text, controlCharacter, topic);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(string.Format(
+                        "Unable to process command '{0}': {1}",
+                        line.Text, ex.Message));
+                }
+
+                if (!isCommand)
+                {
+                    topic.Lines.Add(line);
+                }
+            }
+            return topic;
         }
 
         internal static void DecodeTopic(
