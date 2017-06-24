@@ -10,6 +10,8 @@ Overview
 A QuickHelp .HLP file comprises the following sections:
 
   +------------------------+
+  |        Signature       |
+  +------------------------+
   |       File Header      |
   +------------------------+
   |       Topic Index      |
@@ -38,32 +40,37 @@ Note 2: Multiple help databases may be concatenated and stored in a single
         file. In this document, we assume a single database for convenience.
 
 
+Signature
+---------
+
+An HLP file starts with the two-byte signature: 0x4C, 0x4E.
+
+
 File Header
 -----------
 
-An HLP file starts with the File Header section, which is a structure with the
-following fields:
+Following the signature is the File Header section, which is a structure with
+the following fields:
 
   Range   Type    Field                 Meaning
   ----------------------------------------------------------------------------
-  00-02   WORD    Signature             format signature; must be 0x4C, 0x4E
-  02-04   WORD    Unknown 1             may be version; always 2
+  02-04   WORD    Version               always 2
   04-06   WORD    Attributes            bit 0: case-sensitivity of context
                                                strings
                                         bit 1: prevent the database from being
                                                decoded by the HELPMAKE utility
-                                        bits 2-7: unknown
+                                        bits 2-15: unknown
   06-07   BYTE    ControlCharacter      usually ':'; 0FFh also seen
-  07-08   BYTE    Unknown 3
+  07-08   BYTE    (padding 1)           always 0
   08-0A   WORD    TopicCount            number of topics in the database
   0A-0C   WORD    ContextCount          number of context strings in the 
                                         database
   0C-0D   BYTE    DisplayWidth          width of the help viewer in characters
-  0D-0E   BYTE    Unknown 4
-  0E-10   WORD    Unknown 5
+  0D-0E   BYTE    (padding 2)           always 0
+  0E-10   WORD    (padding 3)           always 0
   10-1E   BYTE[]  DatabaseName          database name used to resolve external
                                         links; NULL-terminated and NULL-padded
-  1E-22   DWORD   reserved1             always 0
+  1E-22   DWORD   (reserved 1)          always 0
   22-26   DWORD   TopicIndex            offset of the Topic Index section
   26-2A   DWORD   ContextStringsOffset  offset of the Context Strings section
   2A-2E   DWORD   ContextMapOffset      offset of the Context Mapping section
@@ -72,8 +79,8 @@ following fields:
   32-36   DWORD   HuffmanTreeOffset     offset of the Huffman Tree section;
                                         0 if Huffman compression is not used
   36-3A   DWORD   TopicTextOffset       offset of the start of topic texts
-  3A-3E   DWORD   reserved2             always 0
-  3E-42   DWORD   reserved3             always 0
+  3A-3E   DWORD   (reserved 2)          always 0
+  3E-42   DWORD   (reserved 3)          always 0
   42-46   DWORD   DatabaseSize          size of the help database in bytes
 
 

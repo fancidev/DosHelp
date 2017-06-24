@@ -4,26 +4,25 @@ namespace QuickHelp.Serialization
 {
     class BinaryHelpFileHeader
     {
-        public UInt16 Signature;
-        public UInt16 Unknown1;
+        public UInt16 Version;
         public HelpFileAttributes Attributes;
         public byte ControlCharacter;
-        public byte Unknown3;
+        public byte Padding1;
         public UInt16 TopicCount;
         public UInt16 ContextCount;
         public byte DisplayWidth;
-        public byte Unknown4;
-        public UInt16 Unknown5;
+        public byte Padding2;
+        public UInt16 Padding3;
         public string DatabaseName;
-        public int reserved1;
+        public int Reserved1;
         public int TopicIndexOffset;
         public int ContextStringsOffset;
         public int ContextMapOffset;
         public int KeywordsOffset;
         public int HuffmanTreeOffset;
         public int TopicTextOffset;
-        public int reserved2;
-        public int reserved3;
+        public int Reserved2;
+        public int Reserved3;
         public int DatabaseSize;
     }
 

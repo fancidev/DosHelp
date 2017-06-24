@@ -53,6 +53,8 @@ namespace QuickHelp.Serialization
             if (options == null)
                 options = new SerializationOptions();
 
+            CheckSignature(stream);
+
             BinaryHelpFileHeader header = ReadFileHeader(stream);
             bool isCaseSensitive = (header.Attributes & HelpFileAttributes.CaseSensitive) != 0;
             HelpDatabase database = new HelpDatabase(header.DatabaseName, isCaseSensitive);
@@ -124,21 +126,30 @@ namespace QuickHelp.Serialization
             return database;
         }
 
+        private static void CheckSignature(Stream stream)
+        {
+            int byte1 = stream.ReadByte();
+            int byte2 = stream.ReadByte();
+            if (!(byte1 == 0x4C && byte2 == 0x4E))
+            {
+                throw new InvalidDataException("File signature mismatch.");
+            }
+        }
+
         private static BinaryHelpFileHeader ReadFileHeader(Stream stream)
         {
-            using (BinaryReader reader = new BinaryReader(new StreamView(stream, 0x46)))
+            using (BinaryReader reader = new BinaryReader(new StreamView(stream, 0x46, 2)))
             {
                 BinaryHelpFileHeader header = new BinaryHelpFileHeader();
-                header.Signature = reader.ReadUInt16();
-                header.Unknown1 = reader.ReadUInt16();
+                header.Version = reader.ReadUInt16();
                 header.Attributes = (HelpFileAttributes)reader.ReadUInt16();
                 header.ControlCharacter = reader.ReadByte();
-                header.Unknown3 = reader.ReadByte();
+                header.Padding1 = reader.ReadByte();
                 header.TopicCount = reader.ReadUInt16();
                 header.ContextCount = reader.ReadUInt16();
                 header.DisplayWidth = reader.ReadByte();
-                header.Unknown4 = reader.ReadByte();
-                header.Unknown5 = reader.ReadUInt16();
+                header.Padding2 = reader.ReadByte();
+                header.Padding3 = reader.ReadUInt16();
 
                 byte[] stringData = reader.ReadBytes(14);
                 header.DatabaseName = Encoding.ASCII.GetString(stringData);
@@ -146,20 +157,24 @@ namespace QuickHelp.Serialization
                 if (k >= 0)
                     header.DatabaseName = header.DatabaseName.Substring(0, k);
 
-                header.reserved1 = reader.ReadInt32();
+                header.Reserved1 = reader.ReadInt32();
                 header.TopicIndexOffset = reader.ReadInt32();
                 header.ContextStringsOffset = reader.ReadInt32();
                 header.ContextMapOffset = reader.ReadInt32();
                 header.KeywordsOffset = reader.ReadInt32();
                 header.HuffmanTreeOffset = reader.ReadInt32();
                 header.TopicTextOffset = reader.ReadInt32();
-                header.reserved2 = reader.ReadInt32();
-                header.reserved3 = reader.ReadInt32();
+                header.Reserved2 = reader.ReadInt32();
+                header.Reserved3 = reader.ReadInt32();
                 header.DatabaseSize = reader.ReadInt32();
 
-                // Verify signature.
-                if (header.Signature != 0x4E4C)
-                    throw new InvalidDataException("File signature mismatch.");
+                // Validate unknown fields.
+                if (header.Version != 2)
+                    throw new NotSupportedException("Unexpected Version field.");
+                if (header.Padding1 != 0 || header.Padding2 != 0 || header.Padding3 != 0)
+                    throw new NotSupportedException("Unexpected Padding field.");
+                if (header.Reserved1 != 0 || header.Reserved2 != 0 || header.Reserved3 != 0)
+                    throw new NotSupportedException("Unexpected Reserved field.");
 
                 return header;
             }
