@@ -55,6 +55,7 @@
     <Compile Include="Serialization\KeywordCompression.cs" />
     <Compile Include="Serialization\SerializationOptions.cs" />
     <Compile Include="Serialization\StreamExtensions.cs" />
+    <Compile Include="Serialization\StreamView.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Formatters\Default.css" />

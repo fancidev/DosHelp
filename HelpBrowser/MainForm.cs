@@ -372,7 +372,6 @@ namespace HelpBrowser
             decoder.InvalidTopicData += OnInvalidTopicData;
 
             using (FileStream stream = File.OpenRead(fileName))
-            using (BinaryReader reader = new BinaryReader(stream))
             {
                 while (stream.Position < stream.Length)
                 {
@@ -380,7 +379,7 @@ namespace HelpBrowser
                     HelpDatabase database;
                     try
                     {
-                        database = decoder.DeserializeDatabase(reader);
+                        database = decoder.DeserializeDatabase(stream);
                     }
                     catch (Exception ex)
                     {

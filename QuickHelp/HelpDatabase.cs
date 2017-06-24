@@ -105,7 +105,7 @@ namespace QuickHelp
         {
             if (contextString == null)
                 throw new ArgumentNullException(nameof(contextString));
-            if (topicIndex < 0 || topicIndex >= this.topics.Count)
+            if (topicIndex < 0)
                 throw new IndexOutOfRangeException(nameof(topicIndex));
 
             contextMap[contextString] = topicIndex;
