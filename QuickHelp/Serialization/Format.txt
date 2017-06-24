@@ -200,56 +200,53 @@ visited.
 Topic Text
 ----------
 
-Following the meta data sections are N blocks of topic texts. Each topic is
+Following the meta data sections are N blocks of topic text. Each topic is
 separately compressed. The compression method is described below.
 
-Topic text is transformed, compressed, and encoded in three steps:
+Topic text is compiled, compressed, and encoded in three steps:
 
-  Step 1. Topic text is transformed from QuickHelp markup format to a binary
+  Step 1. Topic text is compiled from QuickHelp markup format to binary
           format.
 
-  Step 2. The binary topic data is compressed using keyword compression and
+  Step 2. The binary text is compressed using keyword compression and
           run-length encoding.
 
-  Step 3. The compressed data is encoded with Huffman coding and stored in
+  Step 3. The compressed text is encoded with Huffman coding and stored in
           the help database.
 
-The following diagram summarizes this procedure:
+The following diagram illustrates the encoding procedure.
 
   +=====================+
-  |  Markup Topic Data  |
+  |  Markup Topic Text  |
   +=====================+
              |
-             |  [1] transform to binary
+             |  [1] compile to binary format
              v
   +=====================+
-  |  Binary Topic Data  |
+  |  Binary Topic Text  |
   +=====================+
              |
              |  [2] keyword compression and
              |      run-length encoding
              v
   +=====================+
-  | Compact Topic Data  |
+  | Compact Topic Text  |
   +=====================+
              |
              |  [3] Huffman encoding
              v
   +=====================+
-  | Encoded Topic Data  |
+  | Encoded Topic Text  |
   +=====================+
 
 
-Step 1: Convert QuickHelp Markup format to binary format
+Step 1: Compile QuickHelp markup format to binary format
 --------------------------------------------------------
 
 The QuickHelp markup format is described in detail in MASM documentation,
 Chapter 18 - Creating Help Files With HELPMAKE.
 
-The QuickHelp binary format is the format that is actually used by the help
-system to display help content and interact with the user.
-
-In the QuickHelp binary format, each line is represented by two parts:
+In QuickHelp binary format, each line is represented by two parts:
   1. Text
   2. Styles and links
 
