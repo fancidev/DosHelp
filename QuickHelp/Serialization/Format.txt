@@ -12,21 +12,21 @@ A QuickHelp .HLP file comprises the following sections:
   +------------------------+
   |       File Header      |
   +------------------------+
-  |      Topic offsets     |
+  |       Topic Index      |
   +------------------------+
-  |     Context strings    |
+  |     Context Strings    |
   +------------------------+
-  |     Context mapping    |
+  |       Context Map      |
   +------------------------+
-  |       Dictionary       |
+  |        Keywords        |
   +------------------------+
-  |      Huffman tree      |
+  |      Huffman Tree      |
   +------------------------+
-  |      Topic[0] data     |
+  |      Topic[0] Text     |
   +------------------------+
   |          ...           |
   +------------------------+
-  |     Topic[N-1] data    |
+  |     Topic[N-1] Text    |
   +------------------------+
 
 Each section is described in detail below.
@@ -41,13 +41,13 @@ Note 2: Multiple help databases may be concatenated and stored in a single
 File Header
 -----------
 
-An HLP file starts with the "file header" section, which contains the 
+An HLP file starts with the File Header section, which is a structure with the
 following fields:
 
   Range   Type    Field                 Meaning
   ----------------------------------------------------------------------------
   00-02   WORD    Signature             format signature; must be 0x4C, 0x4E
-  02-04   WORD    Unknown 1
+  02-04   WORD    Unknown 1             may be version; always 2
   04-06   WORD    Attributes            bit 0: case-sensitivity of context
                                                strings
                                         bit 1: prevent the database from being
@@ -61,30 +61,29 @@ following fields:
   0C-0D   BYTE    DisplayWidth          width of the help viewer in characters
   0D-0E   BYTE    Unknown 4
   0E-10   WORD    Unknown 5
-  10-1E   String  DatabaseName          database name used to resolve external
+  10-1E   BYTE[]  DatabaseName          database name used to resolve external
                                         links; NULL-terminated and NULL-padded
   1E-22   DWORD   reserved1             always 0
-  22-26   DWORD   TopicOffsetsOffset    offset of topic offsets section
-  26-2A   DWORD   ContextStringsOffset  offset of context strings section
-  2A-2E   DWORD   ContextMappingOffset  offset of context mapping section
-  2E-32   DWORD   DictionaryOffset      offset of dictionary section
-  32-36   DWORD   HuffmanTreeOffset     offset of huffman tree section
-  36-3A   DWORD   TopicDataOffset       offset of topic data section
+  22-26   DWORD   TopicIndex            offset of the Topic Index section
+  26-2A   DWORD   ContextStringsOffset  offset of the Context Strings section
+  2A-2E   DWORD   ContextMapOffset      offset of the Context Mapping section
+  2E-32   DWORD   KeywordsOffset        offset of the Keywords section;
+                                        0 if keyword compression is not used
+  32-36   DWORD   HuffmanTreeOffset     offset of the Huffman Tree section;
+                                        0 if Huffman compression is not used
+  36-3A   DWORD   TopicTextOffset       offset of the start of topic texts
   3A-3E   DWORD   reserved2             always 0
   3E-42   DWORD   reserved3             always 0
   42-46   DWORD   DatabaseSize          size of the help database in bytes
 
 
-Topic Offsets
--------------
+Topic Index
+-----------
 
-The "topic offsets" section comprises (TopicCount + 1) DWORD integers. The
-first (TopicCount) integers specify the offset of the corresponding topics
+The Topic Index section comprises (TopicCount + 1) DWORD integers. The first
+TopicCount integers specify the offset of the corresponding topic texts
 relative to the beginning of the help database. The last integer specifies
 the offset just past the end of the last topic.
-
-The size (in bytes) of topic k can be found by computing the difference
-between TopicOffset[k] and TopicOffset[k+1].
 
    (N = TopicCount)
   +--------------------+
@@ -97,11 +96,14 @@ between TopicOffset[k] and TopicOffset[k+1].
   |   TopicOffset[N]   |   (DWORD) indicates the end of the last topic;
   +--------------------+           should be equal to DatabaseSize.
 
+The size (in bytes) of topic k can be found by computing the difference
+between TopicOffset[k] and TopicOffset[k+1].
+
         
-Context strings
+Context Strings
 ---------------
 
-The "context strings" section comprises (ContextCount) NULL-terminated context
+The Context Strings section comprises (ContextCount) NULL-terminated context
 strings. The context strings are not sorted.
 
    (N = ContextCount)
@@ -114,32 +116,32 @@ strings. The context strings are not sorted.
   +--------------------+
 
 
-Context mapping
----------------
+Context Map
+-----------
 
-The "context mapping" section comprises (ContextCount) WORD integers. Each
-integer specifies the index of the topic to which this context string
+The Context Map section comprises (ContextCount) WORD integers. Each integer
+specifies the index of the topic to which the corresponding context string
 resolves, and must be within the range 0 to (TopicCount-1) inclusive.
 
    (N = ContextCount)
   +-------------------+
-  |  ContextTopic[0]  |   (WORD) topic index that owns first context string
-  +-------------------+
+  |   ContextMap[0]   |   (WORD) index of the topic that the first context
+  +-------------------+          string points to
   |        ...        |   ...
   +-------------------+
-  | ContextTopic[N-1] |   (WORD) topic index that owns last context string
-  +-------------------+
+  |  ContextMap[N-1]  |   (WORD) index of the topic that the last context
+  +-------------------+          string points to
 
 
-Dictionary
-----------
+Keywords
+--------
 
-The "dictionary" section contains a list of frequently used words in the help
-database. It is used by the dictionary substitution stage of compressing the
-database.
+The Keywords section contains a list of frequently used words in the topics.
+It is used by the keyword compression (dictionary substitution) pass. This
+section does not exist if keyword compression is not used for this database.
 
-Each word is prefixed by a byte that indicates the length of the word in
-bytes, excluding the prefix. The word is NOT NULL-terminated.
+Each word is prefixed by a byte that specifies the length of the word in
+bytes, not counting the prefix itself. The word is NOT NULL-terminated.
 
    (N = implied)
   +-------------+
@@ -152,14 +154,15 @@ bytes, excluding the prefix. The word is NOT NULL-terminated.
 
 There can be at most 1024 (10 bits) words in the dictionary; but there can be
 fewer. The number of words is not explicitly specified and must be implied by
-reading the entire section between [DictionaryOffset, HuffmanTreeOffset).
+reading the entire section.
 
 
-Huffman tree
+Huffman Tree
 ------------
 
-The "huffman tree" section contains the huffman tree used by the huffman
-compression pass.
+The Huffman Tree section contains the huffman tree used by the Huffman
+compression pass. This section does not exist if Huffman compression is not
+used for this database.
 
 Each node in a huffman tree is either a leaf node or an internal node. A leaf
 node represents a symbol valued from 0 to 255. An internal node must have two
@@ -167,23 +170,26 @@ children and encodes a bit in the huffman code: the left child encodes 0 and
 the right child encodes 1.
 
 511 nodes are sufficient to encode all 256 symbols. If the tree contains less
-than 511 nodes, only a subset of the 256 symbols is encoded.
+than 511 nodes, only a subset of the 256 symbols are encoded.
 
-The huffman tree is compactly stored in an array of WORD integers, where each
+The Huffman tree is compactly stored in an array of WORD integers, where each
 integer represents a node. The array is terminated by an extra WORD of value
 zero. The nodes plus the terminating 0 WORD should match the length of the
-section specified by [HuffmanTreeOffset, TopicDataOffset).
+section specified by [HuffmanTreeOffset, TopicTextOffset).
 
-The storage format of the huffman tree is as follows. Denote the nodes in the
+The storage format of the Huffman tree is as follows. Denote the nodes in the
 tree by Node[0] through Node[N] where N <= 511 and Node[N] == 0. Then:
+
   - A leaf node, Node[i], has its highest bit set to 1, and the symbol it
     represents is stored in the low byte of Node[i].
+
   - An internal node, Node[i], has its highest is set to 0, and
     o its right child (1 bit) is Node[i+1];
     o its left child (0 bit) is Node[Node[i]/2].
+
   - The root node is Node[0]. It must be an internal node.
 
-Note that this format is not restricted to a huffman tree; it can be used to
+Note that this format is not specific to a Huffman tree; it can be used to
 store any proper binary tree.
 
 The above node numbering scheme can be generated by performing a right-to-left
@@ -191,47 +197,46 @@ pre-order traversal of the tree and number the node sequentially as they are
 visited.
 
 
-Topic data
+Topic Text
 ----------
 
-Following the huffman tree are N blocks of topic data, each corresponding to
-a topic. Each topic is separately compressed. The compression method is
-described below.
+Following the meta data sections are N blocks of topic texts. Each topic is
+separately compressed. The compression method is described below.
 
-Topic content is transformed and compressed in three steps:
+Topic text is transformed, compressed, and encoded in three steps:
 
-Step 1. Topic content is converted from QuickHelp markup format to a binary
-        format suitable for screen display.
+  Step 1. Topic text is transformed from QuickHelp markup format to a binary
+          format.
 
-Step 2. The binary data is compressed using dictionary substitution and
-        run-length encoding.
+  Step 2. The binary topic data is compressed using keyword compression and
+          run-length encoding.
 
-Step 3. The compressed data is encoded with huffman coding and stored in the
-        help database.
+  Step 3. The compressed data is encoded with Huffman coding and stored in
+          the help database.
 
-The following chart summarizes this procedure:
+The following diagram summarizes this procedure:
 
   +=====================+
-  |  Topic Text Markup  |
+  |  Markup Topic Data  |
   +=====================+
              |
-             |  [1] convert to binary
+             |  [1] transform to binary
              v
   +=====================+
   |  Binary Topic Data  |
   +=====================+
              |
-             |  [2] dictionary substitution
-             |      and run-length encoding
+             |  [2] keyword compression and
+             |      run-length encoding
              v
   +=====================+
   | Compact Topic Data  |
   +=====================+
              |
-             |  [3] huffman encoding
+             |  [3] Huffman encoding
              v
   +=====================+
-  |   Data in Storage   |
+  | Encoded Topic Data  |
   +=====================+
 
 
@@ -372,8 +377,8 @@ link in the line. The format of a record is:
   +--------------+
 
 
-Step 2: Dictionary substitution and run-length encoding
--------------------------------------------------------
+Step 2: Keyword compression and run-length encoding
+---------------------------------------------------
 
 The compressed data is a byte stream that has the following format.
 

@@ -85,6 +85,13 @@ namespace QuickHelp
             return topic;
         }
 
+        public void AddTopic(HelpTopic topic)
+        {
+            topic.Database = this;
+            topic.TopicIndex = this.topics.Count;
+            topics.Add(topic);
+        }
+
         /// <summary>
         /// Gets a list of the context strings defined in this database.
         /// </summary>
@@ -105,7 +112,7 @@ namespace QuickHelp
         {
             if (contextString == null)
                 throw new ArgumentNullException(nameof(contextString));
-            if (topicIndex < 0 || topicIndex >= this.topics.Count)
+            if (topicIndex < 0)
                 throw new IndexOutOfRangeException(nameof(topicIndex));
 
             contextMap[contextString] = topicIndex;

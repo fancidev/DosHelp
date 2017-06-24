@@ -8,11 +8,15 @@ namespace QuickHelp
     /// </summary>
     public class HelpTopic
     {
-        private readonly HelpDatabase database;
-        private readonly int topicIndex;
+        private HelpDatabase database;
+        private int topicIndex;
         private readonly List<HelpLine> lines = new List<HelpLine>();
         private readonly List<HelpSnippet> m_snippets = new List<HelpSnippet>();
         private readonly List<string> m_references = new List<string>();
+
+        public HelpTopic()
+        {
+        }
 
         internal HelpTopic(HelpDatabase database, int topicIndex)
         {
@@ -31,6 +35,7 @@ namespace QuickHelp
         public HelpDatabase Database
         {
             get { return this.database; }
+            internal set { this.database = value; }
         }
 
         /// <summary>
@@ -39,6 +44,7 @@ namespace QuickHelp
         public int TopicIndex
         {
             get { return this.topicIndex; }
+            internal set { this.topicIndex = value; }
         }
 
         /// <summary>

@@ -33,20 +33,17 @@ namespace QuickHelp.Serialization
             get { return Root != null && Root.IsLeaf; }
         }
 
-        public static HuffmanTree Deserialize(byte[] buffer)
+        public static HuffmanTree Deserialize(BinaryReader reader)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer));
+            if (reader == null)
+                throw new ArgumentNullException(nameof(reader));
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(buffer)))
+            short[] nodeValues = new Int16[512];
+            for (int i = 0; i < 512; i++)
             {
-                short[] nodeValues = new Int16[512];
-                for (int i = 0; i < 512; i++)
-                {
-                    nodeValues[i] = reader.ReadInt16();
-                    if (nodeValues[i] == 0)
-                        return Deserialize(nodeValues);
-                }
+                nodeValues[i] = reader.ReadInt16();
+                if (nodeValues[i] == 0)
+                    return Deserialize(nodeValues);
             }
             throw new InvalidDataException("Huffman tree too long.");
         }

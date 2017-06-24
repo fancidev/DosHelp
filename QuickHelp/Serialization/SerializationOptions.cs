@@ -15,6 +15,8 @@ namespace QuickHelp.Serialization
         /// </summary>
         public SerializationFormat Format { get; set; }
 
+        public char ControlCharacter { get; set; }
+
         /// <summary>
         /// Gets or sets the compression level.
         /// </summary>
@@ -41,7 +43,7 @@ namespace QuickHelp.Serialization
         /// actual dictionary used in the input or <c>null</c> if the source
         /// does not use keyword compression.
         /// </remarks>
-        public KeywordCollection Keywords { get; set; }
+        public byte[][] Keywords { get; set; }
 
         /// <summary>
         /// Gets or sets the Huffman tree used for Huffman compression.
@@ -92,9 +94,4 @@ namespace QuickHelp.Serialization
         All = RunLength | Keyword | ExtendedKeyword | Huffman
     }
 
-    // no more than 1024 (or 23?) entries
-    public class KeywordCollection : List<byte[]>
-    {
-
-    }
 }
