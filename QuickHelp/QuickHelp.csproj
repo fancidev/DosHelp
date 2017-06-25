@@ -34,6 +34,11 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\BitStream.cs" />
+    <Compile Include="Compression\CompressionStream.cs" />
+    <Compile Include="Compression\HuffmanStream.cs" />
+    <Compile Include="Compression\HuffmanTree.cs" />
+    <Compile Include="Compression\KeywordCompression.cs" />
     <Compile Include="Formatters\EmbeddedHtmlFormatter.cs" />
     <Compile Include="Formatters\HtmlFormatter.cs" />
     <Compile Include="Formatters\TextFormatter.cs" />
@@ -44,15 +49,10 @@
     <Compile Include="HelpUri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serialization\BinaryHelpSerializer.cs" />
-    <Compile Include="Serialization\BitStream.cs" />
     <Compile Include="Serialization\BufferReader.cs" />
-    <Compile Include="Serialization\CompressionStream.cs" />
     <Compile Include="Serialization\Graphic437Encoding.cs" />
     <Compile Include="Serialization\HelpCommand.cs" />
     <Compile Include="Serialization\HelpFile.cs" />
-    <Compile Include="Serialization\HuffmanStream.cs" />
-    <Compile Include="Serialization\HuffmanTree.cs" />
-    <Compile Include="Serialization\KeywordCompression.cs" />
     <Compile Include="Serialization\SerializationOptions.cs" />
     <Compile Include="Serialization\StreamExtensions.cs" />
     <Compile Include="Serialization\StreamView.cs" />
