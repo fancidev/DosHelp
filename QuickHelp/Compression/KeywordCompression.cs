@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     /// <summary>
     /// Maintains a list of keywords used for keyword compression (also known

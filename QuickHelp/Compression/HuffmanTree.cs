@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     using HuffmanTreeNode = BinaryTreeNode<HuffmanTreeNodeData>;
 

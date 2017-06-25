@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     /// <summary>
     /// Represents a stream that reads and writes bits (from MSB to LSB) to

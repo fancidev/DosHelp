@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     /// <summary>
     /// Represents a huffman-encoded stream. Only supports decoding.

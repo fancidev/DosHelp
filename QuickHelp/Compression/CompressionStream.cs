@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     /// <summary>
     /// Represents a stream with dictionary substitution and run-length

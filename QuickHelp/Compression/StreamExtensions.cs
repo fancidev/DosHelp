@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace QuickHelp.Serialization
+namespace QuickHelp.Compression
 {
     static class StreamExtensions
     {
