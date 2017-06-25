@@ -226,7 +226,8 @@ namespace QuickHelp.Serialization
         {
             HelpCommand command;
             string parameter;
-            if (!ParseCommand(line, controlCharacter, out command, out parameter))
+            // if (!ParseCommand(line, controlCharacter, out command, out parameter))
+            if (!ParseColonCommand(line, controlCharacter, out command, out parameter))
                 return false;
 
             ExecuteCommand(command, parameter, topic);
