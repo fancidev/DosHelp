@@ -126,6 +126,22 @@ namespace HelpBrowser
                 txtSource.Text = FormatHexData((byte[])topic.Source);
             else
                 txtSource.Text = "";
+
+            // Special handling for commands.
+            if (topic.IsHidden && !string.IsNullOrEmpty(topic.ExecuteCommand))
+            {
+                if (topic.ExecuteCommand[0] == 'P')
+                {
+                    // TODO: parse mark
+                    string redirectTarget = topic.ExecuteCommand.Substring(2);
+                    if (MessageBox.Show(this, "Redirect to " + redirectTarget + "?",
+                        "Redirect", MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        viewModel.NavigateTo(new HelpUri(redirectTarget));
+                    }
+                }
+            }
         }
 
         private void lstTopics_SelectedIndexChanged(object sender, EventArgs e)

@@ -104,6 +104,9 @@ namespace QuickHelp
         /// </summary>
         public bool IsHidden { get; set; }
 
+        /// <summary>
+        /// Gets or sets the command to execute.
+        /// </summary>
         public string ExecuteCommand { get; set; }
 
         /// <summary>
