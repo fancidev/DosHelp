@@ -1,9 +1,17 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace QuickHelp.Serialization
 {
-    using HuffmanTreeNode = BinaryTreeNode<byte>;
+    using HuffmanTreeNode = BinaryTreeNode<HuffmanTreeNodeData>;
+
+    class HuffmanTreeNodeData
+    {
+        public byte Symbol; // for leaf node only
+        public int Index; // used by serialization only
+        // public int Cost; // used by tree building only
+    };
 
     /// <summary>
     /// Represents a huffman tree that encodes a subset of the symbols 0-255.
@@ -21,7 +29,9 @@ namespace QuickHelp.Serialization
     /// </remarks>
     public class HuffmanTree
     {
-        internal BinaryTreeNode<byte> Root { get; set; }
+        internal HuffmanTreeNode Root { get; set; }
+
+        internal int SymbolCount { get; set; }
 
         public bool IsEmpty
         {
@@ -67,16 +77,19 @@ namespace QuickHelp.Serialization
             HuffmanTreeNode[] nodes = new HuffmanTreeNode[n];
             nodes[0] = new HuffmanTreeNode();
 
+            int symbolCount = 0;
             for (int i = 0; i < n; i++)
             {
                 HuffmanTreeNode node = nodes[i];
                 if (node == null) // not referenced
                     continue;
+                node.Value = new HuffmanTreeNodeData();
 
                 short nodeValue = nodeValues[i];
                 if (nodeValue < 0) // leaf; symbol stored in low byte
                 {
-                    node.Value = (byte)nodeValue;
+                    node.Value.Symbol = (byte)nodeValue;
+                    symbolCount++;
                 }
                 else // right-child (1 bit) follows, left-child (0 bit) encoded
                 {
@@ -93,7 +106,35 @@ namespace QuickHelp.Serialization
                     node.RightChild = nodes[child1];
                 }
             }
-            return new HuffmanTree { Root = nodes[0] };
+
+            return new HuffmanTree
+            {
+                Root = nodes[0],
+                SymbolCount = symbolCount
+            };
+        }
+
+        public Int16[] Serialize()
+        {
+            if (this.Root == null)
+                return null;
+
+            int n = 2 * this.SymbolCount - 1;
+            Int16[] sequence = new Int16[n + 1];
+
+            int index = n;
+            foreach (HuffmanTreeNode node in Root.PostOrderTraverse())
+            {
+                node.Value.Index = --index;
+                if (node.IsLeaf)
+                    sequence[index] = (Int16)(0x8000 | node.Value.Symbol);
+                else
+                    sequence[index] = (Int16)(node.LeftChild.Value.Index * 2);
+            }
+#if DEBUG
+            System.Diagnostics.Debug.Assert(index == 0);
+#endif
+            return sequence;
         }
 
 #if false
@@ -210,7 +251,7 @@ namespace QuickHelp.Serialization
             {
                 if (!this.HasValue)
                     throw new InvalidOperationException("Decoder does not have a value.");
-                return m_node.Value;
+                return m_node.Value.Symbol;
             }
         }
 
@@ -242,6 +283,21 @@ namespace QuickHelp.Serialization
         public bool IsLeaf
         {
             get { return LeftChild == null && RightChild == null; }
+        }
+
+        public IEnumerable<BinaryTreeNode<T>> PostOrderTraverse()
+        {
+            if (LeftChild != null)
+            {
+                foreach (var node in LeftChild.PostOrderTraverse())
+                    yield return node;
+            }
+            if (RightChild != null)
+            {
+                foreach (var node in RightChild.PostOrderTraverse())
+                    yield return node;
+            }
+            yield return this;
         }
     }
 }
