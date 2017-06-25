@@ -11,7 +11,7 @@ namespace QuickHelp.Serialization
         public byte Symbol; // for leaf node only
         public int Index; // used by serialization only
         // public int Cost; // used by tree building only
-    };
+    }
 
     /// <summary>
     /// Represents a huffman tree that encodes a subset of the symbols 0-255.
@@ -48,14 +48,23 @@ namespace QuickHelp.Serialization
             if (reader == null)
                 throw new ArgumentNullException(nameof(reader));
 
-            short[] nodeValues = new Int16[512];
-            for (int i = 0; i < 512; i++)
+            List<Int16> nodeValues = new List<Int16>(511);
+            while (true)
             {
-                nodeValues[i] = reader.ReadInt16();
-                if (nodeValues[i] == 0)
-                    return Deserialize(nodeValues);
+                Int16 nodeValue;
+                try
+                {
+                    nodeValue = reader.ReadInt16();
+                }
+                catch (EndOfStreamException)
+                {
+                    throw new InvalidDataException("Invalid Huffman tree: missing terminating NULL.");
+                }
+                if (nodeValue == 0)
+                    break;
+                nodeValues.Add(nodeValue);
             }
-            throw new InvalidDataException("Huffman tree too long.");
+            return InternalDeserialize(nodeValues.ToArray());
         }
 
         /// <summary>
@@ -64,41 +73,49 @@ namespace QuickHelp.Serialization
         /// <remarks>
         /// See Format.txt for the serialized format of a huffman tree.
         /// </remarks>
-        private static HuffmanTree Deserialize(Int16[] nodeValues)
+        private static HuffmanTree InternalDeserialize(Int16[] nodeValues)
         {
 #if DEBUG
-            System.Diagnostics.Debug.Assert(nodeValues.Length <= 512);
-            System.Diagnostics.Debug.Assert(nodeValues[nodeValues.Length - 1] == 0);
+            System.Diagnostics.Debug.Assert(nodeValues != null);
 #endif
-            if (nodeValues == null || nodeValues.Length == 0)
+            if (nodeValues.Length == 0)
                 return new HuffmanTree();
 
             int n = nodeValues.Length;
+            if (n % 2 == 0)
+                throw new InvalidDataException("Invalid Huffman tree: expecting an odd number of nodes.");
+
             HuffmanTreeNode[] nodes = new HuffmanTreeNode[n];
             nodes[0] = new HuffmanTreeNode();
 
-            int symbolCount = 0;
+            bool[] symbolExists = new bool[256];
             for (int i = 0; i < n; i++)
             {
                 HuffmanTreeNode node = nodes[i];
-                if (node == null) // not referenced
-                    continue;
+                if (node == null)
+                    throw new InvalidDataException("Invalid Huffman tree: orphaned node encountered.");
+                    
                 node.Value = new HuffmanTreeNodeData();
 
                 short nodeValue = nodeValues[i];
                 if (nodeValue < 0) // leaf; symbol stored in low byte
                 {
-                    node.Value.Symbol = (byte)nodeValue;
-                    symbolCount++;
+                    byte symbol = (byte)nodeValue;
+                    if (symbolExists[symbol])
+                    {
+                        throw new InvalidDataException("Invalid Huffman tree: symbol already encoded.");
+                    }
+                    node.Value.Symbol = symbol;
+                    symbolExists[symbol] = true;
                 }
                 else // right-child (1 bit) follows, left-child (0 bit) encoded
                 {
                     int child0 = nodeValue / 2;
                     int child1 = i + 1;
                     if (!(child1 < child0 && child0 < n))
-                        throw new ArgumentException("Tree is invalid.");
+                        throw new InvalidDataException("Invalid Huffman tree: expected child node location.");
                     if (nodes[child0] != null || nodes[child1] != null)
-                        throw new ArgumentException("Tree is invalid.");
+                        throw new InvalidDataException("Invalid Huffman tree: cycle detected.");
 
                     nodes[child0] = new HuffmanTreeNode();
                     nodes[child1] = new HuffmanTreeNode();
@@ -110,17 +127,29 @@ namespace QuickHelp.Serialization
             return new HuffmanTree
             {
                 Root = nodes[0],
-                SymbolCount = symbolCount
+                SymbolCount = n / 2
             };
         }
 
-        public Int16[] Serialize()
+        public void Serialize(BinaryWriter writer)
         {
-            if (this.Root == null)
-                return null;
+            if (writer == null)
+                throw new ArgumentNullException(nameof(writer));
 
-            int n = 2 * this.SymbolCount - 1;
-            Int16[] sequence = new Int16[n + 1];
+            Int16[] words = InternalSerialize();
+
+            // Append extra word at the end for terminating NULL.
+            byte[] bytes = new byte[words.Length * 2 + 2]; 
+            Buffer.BlockCopy(words, 0, bytes, 0, words.Length * 2);
+            writer.Write(bytes);
+        }
+
+        private Int16[] InternalSerialize()
+        {
+            int n = (this.SymbolCount == 0) ? 0 : 2 * this.SymbolCount - 1;
+            Int16[] sequence = new Int16[n];
+            if (n == 0)
+                return sequence;
 
             int index = n;
             foreach (HuffmanTreeNode node in Root.PostOrderTraverse())
