@@ -112,13 +112,8 @@ namespace QuickHelp.Serialization
                     int inputLength = topicOffsets[i + 1] - topicOffsets[i];
 
                     byte[] inputData = reader.ReadBytes(inputLength);
-#if false
-                    database.NewTopic();
-                    ReadTopic(inputData, database.Topics[i], options);
-#else
                     HelpTopic topic = DeserializeTopic(inputData, options);
-                    database.AddTopic(topic);
-#endif
+                    database.Topics.Add(topic);
                 }
                 
                 // TODO: check position
@@ -296,25 +291,6 @@ namespace QuickHelp.Serialization
             using (var reader = new BinaryReader(compressionStream))
             {
                 return reader.ReadBytes(outputLength);
-            }
-        }
-
-        private void ReadTopic(byte[] input, HelpTopic topic, SerializationOptions options)
-        {
-            try
-            {
-                byte[] decompressedData = DecompressTopicData(input, topic, options);
-                if (decompressedData != null)
-                {
-                    topic.Source = decompressedData;
-                    DecodeTopic(decompressedData, topic, options.ControlCharacter);
-                }
-            }
-            catch (Exception ex)
-            {
-                var e = new InvalidTopicDataEventArgs(topic, input,
-                    "Exception: " + ex.Message);
-                this.InvalidTopicData?.Invoke(this, e);
             }
         }
 

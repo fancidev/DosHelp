@@ -8,8 +8,6 @@ namespace QuickHelp
     /// </summary>
     public class HelpTopic
     {
-        private HelpDatabase database;
-        private int topicIndex;
         private readonly List<HelpLine> lines = new List<HelpLine>();
         private readonly List<HelpSnippet> m_snippets = new List<HelpSnippet>();
         private readonly List<string> m_references = new List<string>();
@@ -18,33 +16,24 @@ namespace QuickHelp
         {
         }
 
-        internal HelpTopic(HelpDatabase database, int topicIndex)
-        {
-            if (database == null)
-                throw new ArgumentNullException(nameof(database));
-            if (topicIndex < 0)
-                throw new IndexOutOfRangeException(nameof(topicIndex));
-
-            this.database = database;
-            this.topicIndex = topicIndex;
-        }
-
         /// <summary>
         /// Gets the database that contains this help topic.
         /// </summary>
-        public HelpDatabase Database
-        {
-            get { return this.database; }
-            internal set { this.database = value; }
-        }
+        public HelpDatabase Database { get; internal set; }
 
         /// <summary>
         /// Gets the zero-based index of this topic within its containing database.
         /// </summary>
+        /// TODO: remove this field
         public int TopicIndex
         {
-            get { return this.topicIndex; }
-            internal set { this.topicIndex = value; }
+            get
+            {
+                if (this.Database != null)
+                    return this.Database.Topics.IndexOf(this);
+                else
+                    return -1;
+            }
         }
 
         /// <summary>
