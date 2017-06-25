@@ -115,8 +115,17 @@ namespace QuickHelp.Serialization
                     HelpTopic topic = DeserializeTopic(inputData, options);
                     database.Topics.Add(topic);
                 }
-                
+
                 // TODO: check position
+                if (reader.BaseStream.Position != topicOffsets[header.TopicCount])
+                    throw new InvalidDataException("Incorrect topic end position.");
+                if (reader.BaseStream.Position != header.DatabaseSize)
+                    throw new InvalidDataException("Incorrect database size.");
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine(string.Format(
+                    "Decoded database {0} of {1} bytes.",
+                    database.Name, header.DatabaseSize));
+#endif
             }
             return database;
         }
@@ -163,6 +172,9 @@ namespace QuickHelp.Serialization
                 header.Reserved3 = reader.ReadInt32();
                 header.DatabaseSize = reader.ReadInt32();
 
+                // TODO: make them warnings instead of errors.
+                // COBOL.HLP contains "JCK\r" in Reserved1.
+#if false
                 // Validate unknown fields.
                 if (header.Version != 2)
                     throw new NotSupportedException("Unexpected Version field.");
@@ -170,7 +182,7 @@ namespace QuickHelp.Serialization
                     throw new NotSupportedException("Unexpected Padding field.");
                 if (header.Reserved1 != 0 || header.Reserved2 != 0 || header.Reserved3 != 0)
                     throw new NotSupportedException("Unexpected Reserved field.");
-
+#endif
                 return header;
             }
         }
@@ -270,6 +282,7 @@ namespace QuickHelp.Serialization
 
             // Step 1. Decompile topic.
             HelpTopic topic = DecompileTopic(binaryData, options.ControlCharacter);
+            topic.Source = binaryData;
 
             return topic;
         }
