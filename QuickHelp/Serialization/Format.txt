@@ -59,15 +59,15 @@ the following fields:
                                                strings
                                         bit 1: prevent the database from being
                                                decoded by the HELPMAKE utility
-                                        bits 2-15: unknown
+                                        bits 2-15: reserved; always 0
   06-07   BYTE    ControlCharacter      usually ':'; 0FFh also seen
-  07-08   BYTE    (padding 1)           always 0
+  07-08   BYTE    (padding 1)           reserved; always 0
   08-0A   WORD    TopicCount            number of topics in the database
   0A-0C   WORD    ContextCount          number of context strings in the 
                                         database
-  0C-0D   BYTE    DisplayWidth          width of the help viewer in characters
-  0D-0E   BYTE    (padding 2)           always 0
-  0E-10   WORD    (padding 3)           always 0
+  0C-0E   WORD    DisplayWidth          width of the help viewer in characters
+  0E-10   WORD    PredefinedCtxCount    number of predefined context strings;
+                                        usually 0
   10-1E   BYTE[]  DatabaseName          database name used to resolve external
                                         links; NULL-terminated and NULL-padded
   1E-22   DWORD   (reserved 1)          always 0
@@ -158,6 +158,9 @@ bytes, not counting the prefix itself. The word is NOT NULL-terminated.
   +-------------+
   |  Word[N-1]  |   last word in dictionary (length-prefixed string)
   +-------------+
+
+The words are sorted in lexicographical order. The length prefix is not taken
+into account when sorting.
 
 There can be at most 1024 (10 bits) words in the dictionary; but there can be
 fewer. The number of words is not explicitly specified and must be implied by

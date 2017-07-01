@@ -18,4 +18,6 @@ for viewing in a browser.
 
 **Reference**
 
-*Creating Help Files with HELPMAKE* (Chapter 18 of MASM Documentation, Environment and Tools)
+*Creating Help Files With HELPMAKE* (Chapter 18 of MASM Documentation, Environment and Tools)
+
+*Microsoft Professional Advisor, Library Reference*
